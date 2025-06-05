@@ -1,0 +1,17 @@
+{
+  "name": "@dev/util",
+  "version": "0.0.1",
+  "module": "index.ts",
+  "dependencies": {
+    "bun-promptx": "^0.2.0",
+    "copy-paste": "^1.5.3",
+    "csv": "^6.3.6",
+    "moize": "^6.1.6",
+    "runtypes": "^6.7.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.5",
+    "@types/copy-paste": "^1.1.33"
+  }
+}

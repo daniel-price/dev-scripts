@@ -1,0 +1,17 @@
+export * as ApiGateway from "./src/clients/api-gateway";
+export * as CloudFormation from "./src/clients/cloudformation/";
+export * as DynamoDB from "./src/clients/dynamo";
+export * as EC2 from "./src/clients/ec2";
+export * as ECS from "./src/clients/ecs";
+export * as Evidently from "./src/clients/evidently";
+export * as IAM from "./src/clients/iam";
+export * as Lambda from "./src/clients/lambda";
+export * as ParameterStore from "./src/clients/parameter-store";
+export * as Route53 from "./src/clients/route-53";
+export * as S3 from "./src/clients/s3";
+export * as SecretsManager from "./src/clients/secretsManager";
+export * as SNS from "./src/clients/sns";
+export * as SQS from "./src/clients/sqs";
+export * as StepFunctions from "./src/clients/step-function";
+export * as STS from "./src/clients/sts";
+export * as Query from "./src/helpers/query";
