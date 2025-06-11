@@ -35,6 +35,17 @@ type A = {
   ExpressionAttributeValues: Record<string, AttributeValue>;
 };
 
+type Options = {
+  skipPrompt: boolean;
+};
+
+function setDefaultOptions(options?: Partial<Options>): Options {
+  return {
+    skipPrompt: false,
+    ...options,
+  };
+}
+
 export function filterOptions(
   filterType: Filter,
   fieldName: string,
@@ -142,11 +153,14 @@ export async function partiql<T>(
 export async function deleteItems(
   tableName: string,
   keysGenerator: AsyncGenerator<Record<string, unknown>>,
-  confirmPrompt = true,
+  options?: Partial<Options>,
 ): Promise<void> {
+  const allOptions = setDefaultOptions(options);
   const batchGenerator = Async.batch(keysGenerator, 25);
   for await (const batch of batchGenerator) {
-    if (confirmPrompt) await confirmChangeItems("delete items", batch);
+    if (!allOptions.skipPrompt) {
+      await confirmChangeItems("delete items", batch);
+    }
     Logger.info(`Deleting batch of ${batch.length} items from ${tableName}`);
     const deleteRequests = batch.map((key) => ({
       DeleteRequest: {
@@ -167,8 +181,12 @@ export async function deleteItems(
 export async function deleteItem(
   tableName: string,
   key: Record<string, string>,
+  options?: Partial<Options>,
 ): Promise<DeleteItemOutput> {
-  await confirmChangeItems(`delete item from ${tableName}`, [key]);
+  const allOptions = setDefaultOptions(options);
+  if (!allOptions.skipPrompt) {
+    await confirmChangeItems(`delete item from ${tableName}`, [key]);
+  }
 
   const marshalledKey = marshall(key);
   const params: DeleteItemInput = {

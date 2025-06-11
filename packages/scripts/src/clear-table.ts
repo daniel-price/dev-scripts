@@ -20,7 +20,9 @@ export async function main(args: T_Args): Promise<void> {
 
   const keysGenerator = Async.map(scanGenerator, (i) => Util.pickKeys(i, keys));
 
-  await DynamoDB.deleteItems(args.table, keysGenerator, false);
+  await DynamoDB.deleteItems(args.table, keysGenerator, {
+    skipPrompt: true,
+  });
 
   Logger.info(`Cleared table ${args.table}`);
 }
