@@ -2,6 +2,8 @@ import { Clipboard, Json, Logger } from "@dev/util";
 
 function format(str: string): string | null {
   let res = str
+    .replaceAll(/^"/g, "")
+    .replaceAll(/"$/g, "")
     .replaceAll("    +", "")
     .replaceAll(" Object ", "")
     .replaceAll(" Array ", "")
