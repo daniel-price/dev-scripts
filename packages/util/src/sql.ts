@@ -47,6 +47,32 @@ WHERE id IN ${sql(items)}
 `;
 }
 
+export async function deleteWhere(
+  client: SQL,
+  table: string,
+  where: string,
+  options?: Partial<Options>,
+): Promise<void> {
+  const allOptions = setDefaultOptions(options);
+
+  await client`
+DELETE FROM ${sql(prefixedTableName(table, allOptions))}
+${where ? `WHERE ${sql(where)}` : ""}
+`;
+}
+
+export async function deleteAll(
+  client: SQL,
+  table: string,
+  options?: Partial<Options>,
+): Promise<void> {
+  const allOptions = setDefaultOptions(options);
+
+  await client`
+DELETE FROM ${sql(prefixedTableName(table, allOptions))}
+`;
+}
+
 export async function insert<T>(
   client: SQL,
   table: string,
@@ -58,5 +84,19 @@ export async function insert<T>(
   await client`
 INSERT INTO ${sql(prefixedTableName(table, allOptions))}
 ${sql(items)}
+`;
+}
+
+export async function update<T extends Record<string, unknown>>(
+  client: SQL,
+  table: string,
+  set: T,
+  where: string,
+  options?: Partial<Options>,
+): Promise<void> {
+  const allOptions = setDefaultOptions(options);
+
+  await client`
+UPDATE ${sql(prefixedTableName(table, allOptions))} SET ${sql(set)} WHERE 1 = 1
 `;
 }
