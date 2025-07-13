@@ -11,6 +11,7 @@ function isExecuteError(e: unknown): e is T_ExecuteError {
 }
 
 export function error(context: string, e?: unknown): void {
+  if (!shouldLog(LOG_LEVELS.ERROR)) return;
   if (!e) {
     console.error(context); // eslint-disable-line no-console
     return;
@@ -27,6 +28,11 @@ export function error(context: string, e?: unknown): void {
   }
 
   if (typeof e === "object") {
+    console.error(context, e); // eslint-disable-line no-console
+    return;
+  }
+
+  if (typeof e === "string") {
     console.error(context, e); // eslint-disable-line no-console
     return;
   }
@@ -48,6 +54,7 @@ const envLogLevel = moize(() => {
 });
 
 function shouldLog(logLevel: number): boolean {
+  // if (logLevel) return false;
   const envLogLevelEnum = envLogLevel();
   return logLevel >= envLogLevelEnum;
 }

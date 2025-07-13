@@ -11,6 +11,8 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.3.3",
+    "@electric-sql/pglite-socket": "^0.0.8",
     "@types/bun": "^1.0.5",
     "@types/copy-paste": "^1.1.33"
   }

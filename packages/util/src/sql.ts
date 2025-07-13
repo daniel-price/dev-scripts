@@ -1,7 +1,8 @@
-import { SQL, sql } from "bun";
+import { SQL, sql as bunsql } from "bun";
 
 import * as R from "./runtypes";
-import * as Types from "./types";
+
+export const sql = bunsql;
 
 type Options = {
   stagePrefix?: string;
@@ -25,40 +26,13 @@ export async function select<T>(
 ): Promise<T[]> {
   const allOptions = setDefaultOptions(options);
 
-  const result = await client`
+  const query = client`
 SELECT *
 FROM ${sql(prefixedTableName(table, allOptions))}
 `;
+  const result = await query;
 
   return R.assertType(R.Array(runtype), result);
-}
-
-export async function deleteKeys<T>(
-  client: SQL,
-  table: string,
-  items: Array<Types.SingleKeyObject<T>>,
-  options?: Partial<Options>,
-): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-
-  await client`
-DELETE FROM ${sql(prefixedTableName(table, allOptions))}
-WHERE id IN ${sql(items)}
-`;
-}
-
-export async function deleteWhere(
-  client: SQL,
-  table: string,
-  where: string,
-  options?: Partial<Options>,
-): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-
-  await client`
-DELETE FROM ${sql(prefixedTableName(table, allOptions))}
-${where ? `WHERE ${sql(where)}` : ""}
-`;
 }
 
 export async function deleteAll(
@@ -68,9 +42,10 @@ export async function deleteAll(
 ): Promise<void> {
   const allOptions = setDefaultOptions(options);
 
-  await client`
+  const query = client`
 DELETE FROM ${sql(prefixedTableName(table, allOptions))}
 `;
+  await query;
 }
 
 export async function insert<T>(
@@ -81,22 +56,46 @@ export async function insert<T>(
 ): Promise<void> {
   const allOptions = setDefaultOptions(options);
 
-  await client`
+  const query = client`
 INSERT INTO ${sql(prefixedTableName(table, allOptions))}
 ${sql(items)}
 `;
+  await query;
 }
 
 export async function update<T extends Record<string, unknown>>(
   client: SQL,
   table: string,
   set: T,
-  where: string,
+  wheres?: Record<string, unknown>,
   options?: Partial<Options>,
 ): Promise<void> {
   const allOptions = setDefaultOptions(options);
+  const tableName = prefixedTableName(table, allOptions);
+  const setEntries = Object.entries(set);
+  const whereEntries = Object.entries(wheres || {});
 
-  await client`
-UPDATE ${sql(prefixedTableName(table, allOptions))} SET ${sql(set)} WHERE 1 = 1
-`;
+  // Build SET clause: col1 = ${val1}, col2 = ${val2}
+  const setFragments = setEntries.map(
+    ([key, value]) => sql`${sql(key)} = ${value}`,
+  );
+  // Join with commas
+  const setClause = setFragments.reduce((prev, curr, idx) =>
+    idx === 0 ? curr : sql`${prev}, ${curr}`,
+  );
+
+  if (whereEntries.length > 0) {
+    // Build WHERE clause: col1 = ${val1} AND col2 = ${val2}
+    const whereFragments = whereEntries.map(
+      ([key, value]) => sql`${sql(key)} = ${value}`,
+    );
+    const whereClause = whereFragments.reduce((prev, curr, idx) =>
+      idx === 0 ? curr : sql`${prev} AND ${curr}`,
+    );
+    const query = client`UPDATE ${sql(tableName)} SET ${setClause} WHERE ${whereClause}`;
+    await query;
+  } else {
+    const query = client`UPDATE ${sql(tableName)} SET ${setClause}`;
+    await query;
+  }
 }

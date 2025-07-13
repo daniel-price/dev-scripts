@@ -11,6 +11,8 @@ function format(str: string): string | null {
     .replaceAll("\\n", `\n`)
     .replaceAll(`\\\\"`, `"`)
     .replaceAll(`\\"`, `"`)
+    //replace + from the beginning of each line
+    .replaceAll(/^\+/gm, "")
     //copied from SST logging
     .replaceAll(/\|/g, "")
     .replaceAll(/\+\d+ms/g, "");
