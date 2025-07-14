@@ -179,6 +179,7 @@ describe("Sql", () => {
       `UPDATE "test_table" SET "name" = $1 WHERE "id" = $2`,
       ["name_1_updated", 1],
     ]);
+
     const updated = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([`SELECT * FROM "test_table"`]);
     expect(updated).toEqual([
@@ -236,10 +237,62 @@ describe("Sql", () => {
       },
     ]);
 
-    await Sql.deleteAll(client, tableName);
-    expect(db.getStatements()).toEqual([`DELETE FROM "test_table"`]);
+    await Sql.update(client, tableName, { name: "name_1_updated" }, { id: 1 });
+    expect(db.getStatements()).toEqual([["name_1_updated", 1]]);
+
+    const updated3 = await Sql.select(client, tableName, R.Record({}));
+    expect(db.getStatements()).toEqual([[]]);
+    expect(updated3).toEqual([
+      {
+        age: 20,
+        id: 2,
+        name: "name_updated",
+      },
+      {
+        age: 30,
+        id: 3,
+        name: "name_updated",
+      },
+      {
+        age: 40,
+        id: 4,
+        name: "name_updated",
+      },
+      {
+        age: 10,
+        id: 1,
+        name: "name_1_updated",
+      },
+    ]);
+    await Sql.deleteAll(client, tableName, { id: 1 });
+    expect(db.getStatements()).toEqual([
+      `DELETE FROM "test_table" WHERE "id" = $1`,
+      [1],
+    ]);
     const afterDeleteAll = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
-    expect(afterDeleteAll).toEqual([]);
+    expect(afterDeleteAll).toEqual([
+      {
+        age: 20,
+        id: 2,
+        name: "name_updated",
+      },
+      {
+        age: 30,
+        id: 3,
+        name: "name_updated",
+      },
+      {
+        age: 40,
+        id: 4,
+        name: "name_updated",
+      },
+    ]);
+
+    await Sql.deleteAll(client, tableName);
+    expect(db.getStatements()).toEqual([`DELETE FROM "test_table"`]);
+    const afterDeleteAll2 = await Sql.select(client, tableName, R.Record({}));
+    expect(db.getStatements()).toEqual([[]]);
+    expect(afterDeleteAll2).toEqual([]);
   });
 });

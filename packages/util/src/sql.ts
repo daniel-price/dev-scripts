@@ -38,12 +38,14 @@ FROM ${sql(prefixedTableName(table, allOptions))}
 export async function deleteAll(
   client: SQL,
   table: string,
+  wheres?: Record<string, unknown>,
   options?: Partial<Options>,
 ): Promise<void> {
   const allOptions = setDefaultOptions(options);
 
   const query = client`
 DELETE FROM ${sql(prefixedTableName(table, allOptions))}
+${constructWhere(wheres)}
 `;
   await query;
 }
@@ -63,39 +65,36 @@ ${sql(items)}
   await query;
 }
 
-export async function update<T extends Record<string, unknown>>(
+export async function update(
   client: SQL,
   table: string,
-  set: T,
+  set: Record<string, unknown>,
   wheres?: Record<string, unknown>,
   options?: Partial<Options>,
 ): Promise<void> {
   const allOptions = setDefaultOptions(options);
   const tableName = prefixedTableName(table, allOptions);
-  const setEntries = Object.entries(set);
+
+  const setClause = Object.entries(set)
+    .map(([key, value]) => sql`${sql(key)} = ${value}`)
+    .reduce((prev, curr, idx) => (idx === 0 ? curr : sql`${prev}, ${curr}`));
+
+  const query = client`
+UPDATE ${sql(tableName)} 
+SET ${setClause} 
+${constructWhere(wheres)}`;
+  await query;
+}
+
+function constructWhere(
+  wheres: Record<string, unknown> | undefined,
+): Bun.SQLQuery {
   const whereEntries = Object.entries(wheres || {});
-
-  // Build SET clause: col1 = ${val1}, col2 = ${val2}
-  const setFragments = setEntries.map(
-    ([key, value]) => sql`${sql(key)} = ${value}`,
-  );
-  // Join with commas
-  const setClause = setFragments.reduce((prev, curr, idx) =>
-    idx === 0 ? curr : sql`${prev}, ${curr}`,
-  );
-
-  if (whereEntries.length > 0) {
-    // Build WHERE clause: col1 = ${val1} AND col2 = ${val2}
-    const whereFragments = whereEntries.map(
-      ([key, value]) => sql`${sql(key)} = ${value}`,
-    );
-    const whereClause = whereFragments.reduce((prev, curr, idx) =>
-      idx === 0 ? curr : sql`${prev} AND ${curr}`,
-    );
-    const query = client`UPDATE ${sql(tableName)} SET ${setClause} WHERE ${whereClause}`;
-    await query;
-  } else {
-    const query = client`UPDATE ${sql(tableName)} SET ${setClause}`;
-    await query;
-  }
+  return whereEntries.length
+    ? sql`WHERE ${whereEntries
+        .map(([key, value]) => sql`${sql(key)} = ${value}`)
+        .reduce((prev, curr, idx) =>
+          idx === 0 ? curr : sql`${prev} AND ${curr}`,
+        )}`
+    : sql``;
 }
