@@ -49,12 +49,12 @@ const envLogLevel = moize(() => {
     return LOG_LEVELS[envLogLevel];
   }
 
-  error("unknown log level - using INFO", envLogLevel);
+  // eslint-disable-next-line no-console
+  console.error("unknown log level - using INFO", envLogLevel);
   return LOG_LEVELS.INFO;
 });
 
 function shouldLog(logLevel: number): boolean {
-  // if (logLevel) return false;
   const envLogLevelEnum = envLogLevel();
   return logLevel >= envLogLevelEnum;
 }
@@ -64,10 +64,6 @@ const LOG_LEVELS = {
   INFO: 2,
   ERROR: 3,
 };
-
-// function expandArrayArgs(...args: unknown[]): unknown[] {
-//   return args
-// }
 
 export function debug(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.DEBUG)) return;
