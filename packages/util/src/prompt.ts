@@ -15,6 +15,7 @@ export async function string(message: string): Promise<string> {
   if (error === "Cancelled") throw new PromptCancelledError();
   if (error) throw new Error(error);
   if (value === null) throw new Error("No value");
+  if (value === "") throw new PromptCancelledError();
   return value;
 }
 
