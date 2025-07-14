@@ -13,6 +13,7 @@ import {
   UpdateFunctionConfigurationCommand,
 } from "@aws-sdk/client-lambda";
 import { ChangeItems, Json, Logger, R } from "@dev/util";
+import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
 import { awsJSON, getAll, getQueryArg, withRetry } from "../helpers/aws";
@@ -143,11 +144,13 @@ export async function updateFunctionCode(
   );
 }
 
-export async function deleteLambdaFunction(fnName: string): Promise<void> {
-  Logger.info(`Deleting Lambda function ${fnName}`);
-  await lambda.send(
-    new DeleteFunctionCommand({
-      FunctionName: fnName,
-    }),
-  );
+export async function deleteLambdaFunctions(fnNames: string[]): Promise<void> {
+  await confirmChangeItems("delete Lambda functions", fnNames);
+  for (const fnName of fnNames) {
+    await lambda.send(
+      new DeleteFunctionCommand({
+        FunctionName: fnName,
+      }),
+    );
+  }
 }
