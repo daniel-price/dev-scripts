@@ -1,4 +1,5 @@
 import {
+  DeleteFunctionCommand,
   FunctionConfiguration,
   GetFunctionCommand,
   GetFunctionCommandOutput,
@@ -138,6 +139,15 @@ export async function updateFunctionCode(
       FunctionName: functionName,
       ZipFile: fs.readFileSync(zipFile),
       Publish: true,
+    }),
+  );
+}
+
+export async function deleteLambdaFunction(fnName: string): Promise<void> {
+  Logger.info(`Deleting Lambda function ${fnName}`);
+  await lambda.send(
+    new DeleteFunctionCommand({
+      FunctionName: fnName,
     }),
   );
 }
