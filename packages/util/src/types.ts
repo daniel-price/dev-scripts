@@ -11,3 +11,8 @@ type IsUnion<T, U = T> =
 
 export type SingleKeyObject<T, K = keyof T> =
   IsNever<K> extends true ? never : IsUnion<K> extends true ? never : T;
+
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+  // eslint-disable-next-line @typescript-eslint/ban-types
+} & {};

@@ -1,6 +1,7 @@
 import { SQL, sql as bunsql } from "bun";
 
 import * as R from "./runtypes";
+import { Prettify } from "./types";
 
 export const sql = bunsql;
 
@@ -22,7 +23,7 @@ export async function select<T>(
   client: SQL,
   table: string,
   runtype: R.Runtype<T>,
-  options?: Partial<Options>,
+  options?: Prettify<Partial<Options>>,
 ): Promise<T[]> {
   const allOptions = setDefaultOptions(options);
 
