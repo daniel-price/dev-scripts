@@ -129,7 +129,7 @@ db.getStatements = (): Array<unknown> => {
 // Wrap PGlite instance
 const socket = new PGLiteSocketServer({
   db,
-  port: 1111,
+  port: 9876,
   host: "127.0.0.1",
 });
 await socket.start();
@@ -140,7 +140,7 @@ describe("Sql", () => {
   it("should select, insert, update and delete correctly", async () => {
     const client = new SQL({
       hostname: "127.0.0.1",
-      port: 1111,
+      port: 9876,
       username: "postgres",
       password: "postgres",
       database: "postgres",

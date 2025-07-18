@@ -1,6 +1,7 @@
 import fs from "fs";
 import { pipeline } from "stream/promises";
 
+import { ObjectUtil } from "..";
 import * as Json from "./json";
 import * as Logger from "./logger";
 import * as R from "./runtypes";
@@ -73,7 +74,7 @@ async function doRequest<T>(
 }
 
 type GetOptions = CommonOptions & {
-  queryParams: Record<string, string>;
+  queryParams: Record<string, string | undefined>;
 };
 
 export async function get<T>(
@@ -82,7 +83,7 @@ export async function get<T>(
   options?: Partial<GetOptions>,
 ): Promise<T> {
   const fullUrl = options?.queryParams
-    ? `${url}?${new URLSearchParams(options.queryParams).toString()}`
+    ? `${url}?${new URLSearchParams(ObjectUtil.removeUndefinedValues(options.queryParams)).toString()}`
     : url;
 
   return await doRequest(fullUrl, "GET", runtype, options);
