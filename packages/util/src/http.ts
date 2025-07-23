@@ -23,6 +23,7 @@ export async function downloadFile(
 type CommonOptions = {
   body: string | Record<string, unknown>;
   headers: RequestInit["headers"];
+  queryParams: Record<string, string | undefined>;
 } & {
   responseAsText: boolean;
 };
@@ -51,16 +52,19 @@ async function doRequest<T>(
   runtype: R.Runtype<T>,
   options?: Partial<CommonOptions>,
 ): Promise<T> {
+  const fullUrl = options?.queryParams
+    ? `${url}?${new URLSearchParams(ObjectUtil.removeUndefinedValues(options.queryParams)).toString()}`
+    : url;
   const requestParams = getRequestParams(method, options);
 
   Logger.debug("http request params", requestParams);
-  const response = await fetch(url, requestParams);
+  const response = await fetch(fullUrl, requestParams);
 
   if (!response.ok) {
     const text = await response.text();
     const { statusText, status } = response;
     throw new Error(`${method} request failed`, {
-      cause: { status, statusText, url, requestParams, text },
+      cause: { status, statusText, fullUrl, requestParams, text },
     });
   }
 
@@ -73,26 +77,18 @@ async function doRequest<T>(
   return typedJson;
 }
 
-type GetOptions = CommonOptions & {
-  queryParams: Record<string, string | undefined>;
-};
-
 export async function get<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<GetOptions>,
+  options?: Partial<CommonOptions>,
 ): Promise<T> {
-  const fullUrl = options?.queryParams
-    ? `${url}?${new URLSearchParams(ObjectUtil.removeUndefinedValues(options.queryParams)).toString()}`
-    : url;
-
-  return await doRequest(fullUrl, "GET", runtype, options);
+  return await doRequest(url, "GET", runtype, options);
 }
 
 export async function put<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<GetOptions>,
+  options?: Partial<CommonOptions>,
 ): Promise<T> {
   return await doRequest(url, "PUT", runtype, options);
 }

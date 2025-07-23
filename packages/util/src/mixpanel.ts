@@ -1,17 +1,17 @@
-import { DateUtil, Http, Json, R } from "..";
+import { DateUtil, Http, Json, Logger, R } from "..";
 
-type Params = {
+type ListEventsParams = {
   whereProperties: Record<string, string>;
   fromDate: Date;
   toDate: Date;
 };
 
-export async function query<T>(
+export async function listEvents<T>(
   bearerToken: string,
   projectId: string,
   eventNames: string[],
   runtype: R.Runtype<T>,
-  params: Partial<Params> = {},
+  params: Partial<ListEventsParams> = {},
 ): Promise<T[]> {
   const where = params.whereProperties
     ? Object.entries(params.whereProperties)
@@ -36,7 +36,7 @@ export async function query<T>(
   };
 
   const res = await Http.get(
-    "https://data-eu.mixpanel.com/api/2.0/export",
+    "https://data-eu.mixpanel.com/api/query/engage",
     R.String,
     {
       queryParams,
@@ -53,4 +53,37 @@ export async function query<T>(
     .map((line) => {
       return Json.parse(line, runtype);
     });
+}
+
+export async function listProfile<T>(
+  bearerToken: string,
+  projectId: string,
+  runtype: R.Runtype<T>,
+  distinctId: string,
+): Promise<T | null> {
+  const base64EncodedBearerToken = Buffer.from(bearerToken).toString("base64");
+  const queryParams: Record<string, string | undefined> = {
+    project_id: projectId,
+  };
+
+  const res = await Http.post(
+    "https://eu.mixpanel.com/api/query/engage",
+    R.String,
+    {
+      queryParams,
+      headers: {
+        authorization: `Basic ${base64EncodedBearerToken}`,
+      },
+      responseAsText: true,
+      body: JSON.stringify({
+        distinct_id: distinctId,
+      }),
+    },
+  );
+
+  const parsedRes = Json.parse(res, R.Record({ results: R.Array(runtype) }));
+
+  Logger.info("Mixpanel profile response:", res);
+
+  return parsedRes.results[0] || null;
 }

@@ -16,6 +16,8 @@ export async function main(args: T_Args): Promise<void> {
   );
   if (!keys) throw new Error(`Unable to find keys for table ${args.table}`);
 
+  Logger.info(`Item count: ${tableDescription.ItemCount}`);
+
   const scanGenerator = DynamoDB.scan(args.table, R.Dictionary(R.Unknown));
 
   const keysGenerator = Async.map(scanGenerator, (i) => Util.pickKeys(i, keys));
