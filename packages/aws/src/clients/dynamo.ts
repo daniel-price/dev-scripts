@@ -22,7 +22,7 @@ import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { Async, Logger, R } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
-import { yieldAll } from "../helpers/aws";
+import { withRetry, yieldAll } from "../helpers/aws";
 
 const ddb = new DynamoDBClient();
 
@@ -38,13 +38,6 @@ type A = {
 type Options = {
   skipPrompt: boolean;
 };
-
-function setDefaultOptions(options?: Partial<Options>): Options {
-  return {
-    skipPrompt: false,
-    ...options,
-  };
-}
 
 export function filterOptions(
   filterType: Filter,
@@ -153,27 +146,34 @@ export async function partiql<T>(
 export async function deleteItems(
   tableName: string,
   keysGenerator: AsyncGenerator<Record<string, unknown>>,
-  options?: Partial<Options>,
+  options: Partial<Options> & { totalCount?: number } = {},
 ): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-  const batchGenerator = Async.batch(keysGenerator, 25);
+  const batchSize = 25; // DynamoDB batch write limit
+  const batchGenerator = Async.batch(keysGenerator, batchSize);
+  let totalCount = 0;
   for await (const batch of batchGenerator) {
-    if (!allOptions.skipPrompt) {
+    if (!options.skipPrompt) {
       await confirmChangeItems("delete items", batch);
     }
-    Logger.info(`Deleting batch of ${batch.length} items from ${tableName}`);
     const deleteRequests = batch.map((key) => ({
       DeleteRequest: {
         Key: marshall(key),
       },
     }));
 
-    await ddb.send(
-      new BatchWriteItemCommand({
-        RequestItems: {
-          [tableName]: deleteRequests,
-        },
-      }),
+    await withRetry(() =>
+      ddb.send(
+        new BatchWriteItemCommand({
+          RequestItems: {
+            [tableName]: deleteRequests,
+          },
+        }),
+      ),
+    );
+
+    totalCount += batch.length;
+    Logger.info(
+      `Deleted batch of ${batch.length} items from ${tableName}, total: ${totalCount}${options.totalCount ? `/${options.totalCount}` : ""}`,
     );
   }
 }
@@ -181,10 +181,9 @@ export async function deleteItems(
 export async function deleteItem(
   tableName: string,
   key: Record<string, string>,
-  options?: Partial<Options>,
+  options: Partial<Options> = {},
 ): Promise<DeleteItemOutput> {
-  const allOptions = setDefaultOptions(options);
-  if (!allOptions.skipPrompt) {
+  if (!options.skipPrompt) {
     await confirmChangeItems(`delete item from ${tableName}`, [key]);
   }
 

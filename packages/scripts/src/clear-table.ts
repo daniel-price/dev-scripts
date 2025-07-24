@@ -11,12 +11,11 @@ export async function main(args: T_Args): Promise<void> {
   Logger.info(`Clearing table ${args.table}`);
 
   const tableDescription = await DynamoDB.describeTable(args.table);
-  const keys = tableDescription.KeySchema?.map((k) => k.AttributeName).filter(
-    Util.isNonNil,
-  );
+  const { ItemCount, KeySchema } = tableDescription;
+  const keys = KeySchema?.map((k) => k.AttributeName).filter(Util.isNonNil);
   if (!keys) throw new Error(`Unable to find keys for table ${args.table}`);
 
-  Logger.info(`Item count: ${tableDescription.ItemCount}`);
+  Logger.info(`Item count: ${ItemCount}`);
 
   const scanGenerator = DynamoDB.scan(args.table, R.Dictionary(R.Unknown));
 
@@ -24,6 +23,7 @@ export async function main(args: T_Args): Promise<void> {
 
   await DynamoDB.deleteItems(args.table, keysGenerator, {
     skipPrompt: true,
+    totalCount: ItemCount,
   });
 
   Logger.info(`Cleared table ${args.table}`);

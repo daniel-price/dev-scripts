@@ -4,6 +4,15 @@ import * as Enum from "./enum";
 
 type T_ExecuteError = { stderr: string };
 
+const LOG_LEVELS = {
+  DEBUG: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+} as const;
+
+type LogLevels = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];
+
 function isExecuteError(e: unknown): e is T_ExecuteError {
   if (!e) return false;
   if (typeof e !== "object") return false;
@@ -54,21 +63,21 @@ const envLogLevel = moize(() => {
   return LOG_LEVELS.INFO;
 });
 
-function shouldLog(logLevel: number): boolean {
+function shouldLog(logLevel: LogLevels): boolean {
   const envLogLevelEnum = envLogLevel();
   return logLevel >= envLogLevelEnum;
 }
-
-const LOG_LEVELS = {
-  DEBUG: 1,
-  INFO: 2,
-  ERROR: 3,
-};
 
 export function debug(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.DEBUG)) return;
   // const expandedArgs = expandArrayArgs(args)
   console.debug("\n", ...args); // eslint-disable-line no-console
+}
+
+export function warn(...args: unknown[]): void {
+  if (!shouldLog(LOG_LEVELS.WARN)) return;
+  // const expandedArgs = expandArrayArgs(args)
+  console.warn("\n", ...args); // eslint-disable-line no-console
 }
 
 export function info(...args: unknown[]): void {

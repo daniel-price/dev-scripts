@@ -62,7 +62,10 @@ export async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
       if (attemptNumber >= maxAttempts) {
         throw e;
       }
-      await Bun.sleep(1000 * attemptNumber);
+      const secondsToWait = 1000 * attemptNumber;
+      Logger.warn(`Retrying after ${secondsToWait / 1000}s due to error:`, e);
+
+      await Bun.sleep(secondsToWait);
     }
   }
 }
