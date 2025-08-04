@@ -58,7 +58,7 @@ async function updateCode(
 
   Logger.info("Zipping new code");
 
-  await Execute.exec(`trash .history`, unzippedFolder);
+  await Execute.exec(`rm -rf .history`, unzippedFolder);
   await Execute.exec(`zip ${newZipFile} -r .`, unzippedFolder);
 
   Logger.info("Uploading new code");
