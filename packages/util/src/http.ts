@@ -1,9 +1,9 @@
 import fs from "fs";
 import { pipeline } from "stream/promises";
 
-import { ObjectUtil } from "..";
 import * as Json from "./json";
 import * as Logger from "./logger";
+import * as ObjectUtil from "./object";
 import * as R from "./runtypes";
 import { isObject } from "./util";
 

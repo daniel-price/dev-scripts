@@ -1,4 +1,8 @@
-import { DateUtil, Http, Json, Logger, R } from "..";
+import * as DateUtil from "./date";
+import * as Http from "./http";
+import * as Json from "./json";
+import * as Logger from "./logger";
+import * as R from "./runtypes";
 
 type ListEventsParams = {
   whereProperties: Record<string, string>;
