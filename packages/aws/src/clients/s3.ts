@@ -1,5 +1,6 @@
 import {
   _Object,
+  DeleteBucketCommand,
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
@@ -9,6 +10,10 @@ import {
 import { ChangeItems, Logger } from "@dev/util";
 
 const s3 = new S3Client();
+
+type Options = {
+  skipPrompt: boolean;
+};
 
 export async function listObjectsInBucket(
   bucket: string,
@@ -28,37 +33,59 @@ export async function getObject(bucket: string, key: string): Promise<string> {
   return res.Body.transformToString();
 }
 
-export async function emptyBucket(bucket: string): Promise<boolean> {
+export async function deleteBucket(bucket: string): Promise<boolean> {
   try {
-    const objects = await listObjectsInBucket(bucket);
-
-    const res = await deleteObjects(
-      bucket,
-      objects.map(({ Key }) => {
-        if (!Key) throw new Error("Key is not defined");
-        return { Key };
-      }),
-    );
-
-    return res;
+    const command = new DeleteBucketCommand({ Bucket: bucket });
+    await s3.send(command);
+    Logger.info(`Bucket ${bucket} deleted successfully.`);
+    return true;
   } catch (e) {
-    // throw new Error(`Error emptying ${bucket} bucket`, { cause: e });
+    Logger.error(`Error deleting bucket ${bucket}`, e);
     return false;
+  }
+}
+
+export async function emptyBucket(
+  bucket: string,
+  options: Partial<Options> = {},
+): Promise<boolean> {
+  while (true) {
+    try {
+      const objects = await listObjectsInBucket(bucket);
+      if (objects.length === 0) {
+        Logger.info(`Bucket ${bucket} is already empty.`);
+        return true;
+      }
+
+      await deleteObjects(
+        bucket,
+        objects.map(({ Key }) => {
+          if (!Key) throw new Error("Key is not defined");
+          return { Key };
+        }),
+        options,
+      );
+    } catch (e) {
+      throw new Error(`Error emptying ${bucket} bucket`, { cause: e });
+    }
   }
 }
 
 export async function deleteObjects(
   bucket: string,
   objects: { Key: string }[],
+  options: Partial<Options> = {},
 ): Promise<boolean> {
   if (!objects.length) {
     Logger.info(`no objects to delete in bucket ${bucket}`);
     return true;
   }
-  await ChangeItems.confirmChangeItems(
-    `delete all objects (${objects.length}) in ${bucket}`,
-    objects.map(({ Key }) => Key),
-  );
+  if (!options.skipPrompt) {
+    await ChangeItems.confirmChangeItems(
+      `delete all objects (${objects.length}) in ${bucket}`,
+      objects.map(({ Key }) => Key),
+    );
+  }
 
   const command = new DeleteObjectsCommand({
     Bucket: bucket,
