@@ -1,4 +1,4 @@
-export function enumToMap(
+export function toMap(
   enumeration: Record<string, string>,
 ): Map<string, string> {
   const map = new Map<string, string>();

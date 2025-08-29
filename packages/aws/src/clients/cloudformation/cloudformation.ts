@@ -92,7 +92,7 @@ function getStatusFilterArg(statusFilter?: string[]): string {
 }
 
 export const ALL_STACK_STATUSES = Array.from(
-  Enum.enumToMap(E_STACK_STATUS).values(),
+  Enum.toMap(E_STACK_STATUS).values(),
 );
 
 export async function getStackNamesAndStatuses(
