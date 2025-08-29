@@ -1,4 +1,4 @@
-import { Json, Logger, R } from "@dev/util";
+import { Json, Logger, R, retry } from "@dev/util";
 import { execute } from "@getvim/execute";
 
 export async function awsJSON<T>(
@@ -51,25 +51,6 @@ function getFieldNameString(fieldNames?: string | string[]): string {
   return `.${fieldNames}`;
 }
 
-export async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-  let attemptNumber = 0;
-  const maxAttempts = 5;
-  while (true) {
-    attemptNumber++;
-    try {
-      return await fn();
-    } catch (e) {
-      if (attemptNumber >= maxAttempts) {
-        throw e;
-      }
-      const secondsToWait = 1000 * attemptNumber;
-      Logger.warn(`Retrying after ${secondsToWait / 1000}s due to error:`, e);
-
-      await Bun.sleep(secondsToWait);
-    }
-  }
-}
-
 export async function getAll<Result, Token>(
   fn: (
     token?: Token,
@@ -79,7 +60,7 @@ export async function getAll<Result, Token>(
   const allResults = [];
   let nextToken = token;
   do {
-    const res = await withRetry(() => fn(nextToken));
+    const res = await retry(() => fn(nextToken));
     nextToken = res.nextToken;
     const { results = [] } = res;
     allResults.push(...results);
@@ -95,7 +76,7 @@ export async function* yieldAll<Result, Token>(
 ): AsyncGenerator<Result> {
   let nextToken = token;
   do {
-    const res = await withRetry(() => fn(nextToken));
+    const res = await retry(() => fn(nextToken));
     nextToken = res.nextToken;
     const { results = [] } = res;
 

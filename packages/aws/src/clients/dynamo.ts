@@ -19,10 +19,10 @@ import {
   UpdateItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Async, Logger, R } from "@dev/util";
+import { Async, Logger, R, retry } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
-import { withRetry, yieldAll } from "../helpers/aws";
+import { yieldAll } from "../helpers/aws";
 
 const ddb = new DynamoDBClient();
 
@@ -161,7 +161,7 @@ export async function deleteItems(
       },
     }));
 
-    await withRetry(() =>
+    await retry(() =>
       ddb.send(
         new BatchWriteItemCommand({
           RequestItems: {

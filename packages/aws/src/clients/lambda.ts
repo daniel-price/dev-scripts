@@ -12,11 +12,11 @@ import {
   UpdateFunctionCodeCommandOutput,
   UpdateFunctionConfigurationCommand,
 } from "@aws-sdk/client-lambda";
-import { ChangeItems, Json, Logger, R } from "@dev/util";
+import { ChangeItems, Json, Logger, R, retry } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
-import { awsJSON, getAll, getQueryArg, withRetry } from "../helpers/aws";
+import { awsJSON, getAll, getQueryArg } from "../helpers/aws";
 
 const G_Lambda = R.Record({
   FunctionName: R.String,
@@ -76,7 +76,7 @@ export async function updateEnvVariable(
 export async function getEnvironmentVariables(
   lambdaFn: T_Lambda,
 ): Promise<Record<string, string>> {
-  return withRetry(async () => {
+  return retry(async () => {
     const res = await lambda.send(
       new GetFunctionConfigurationCommand({
         FunctionName: lambdaFn.FunctionName,
