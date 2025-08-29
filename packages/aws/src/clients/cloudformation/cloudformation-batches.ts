@@ -1,5 +1,5 @@
 import { StackStatus } from "@aws-sdk/client-cloudformation";
-import { ChangeItems, Logger } from "@dev/util";
+import { ChangeItems, Logger, Util } from "@dev/util";
 
 import { isSdkError } from "../../helpers/error";
 import {
@@ -62,7 +62,7 @@ export class Batches {
       if (!success) break;
     }
 
-    await Bun.sleep(100);
+    await Util.sleep(100);
 
     clearInterval(interval);
     void import("log-update").then(({ default: logUpdate }) =>
@@ -147,7 +147,7 @@ class Stack {
       ).length === 1 ||
       this.inProgress()
     ) {
-      await Bun.sleep(10000);
+      await Util.sleep(10000);
       await this._updateStatuses();
     }
 

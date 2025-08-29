@@ -20,18 +20,15 @@ export async function downloadFile(
   return pipeline(c, fs.createWriteStream(path));
 }
 
-type CommonOptions = {
-  body: string | Record<string, unknown>;
-  headers: RequestInit["headers"];
-  queryParams: Record<string, string | undefined>;
+type Options = {
+  body?: string | Record<string, unknown>;
+  headers?: RequestInit["headers"];
+  queryParams?: Record<string, string | undefined>;
 } & {
-  responseAsText: boolean;
+  responseAsText?: boolean;
 };
 
-function getRequestParams(
-  method: string,
-  options?: Partial<CommonOptions>,
-): RequestInit {
+function getRequestParams(method: string, options?: Options): RequestInit {
   const headers = options?.headers;
   const body = isObject(options?.body)
     ? Json.stringify(options.body)
@@ -50,7 +47,7 @@ async function doRequest<T>(
   url: string,
   method: "GET" | "POST" | "PUT" | "DELETE",
   runtype: R.Runtype<T>,
-  options?: Partial<CommonOptions>,
+  options?: Options,
 ): Promise<T> {
   const fullUrl = options?.queryParams
     ? `${url}?${new URLSearchParams(ObjectUtil.removeUndefinedValues(options.queryParams)).toString()}`
@@ -80,7 +77,7 @@ async function doRequest<T>(
 export async function get<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<CommonOptions>,
+  options?: Options,
 ): Promise<T> {
   return await doRequest(url, "GET", runtype, options);
 }
@@ -88,7 +85,7 @@ export async function get<T>(
 export async function put<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<CommonOptions>,
+  options?: Options,
 ): Promise<T> {
   return await doRequest(url, "PUT", runtype, options);
 }
@@ -96,7 +93,7 @@ export async function put<T>(
 export async function post<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<CommonOptions>,
+  options?: Options,
 ): Promise<T> {
   return await doRequest(url, "POST", runtype, options);
 }
@@ -104,7 +101,7 @@ export async function post<T>(
 export async function del<T>(
   url: string,
   runtype: R.Runtype<T>,
-  options?: Partial<CommonOptions>,
+  options?: Options,
 ): Promise<T> {
   return await doRequest(url, "DELETE", runtype, options);
 }

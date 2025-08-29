@@ -1,7 +1,6 @@
 import { SQL, sql as bunsql } from "bun";
 
 import * as R from "./runtypes";
-import { Prettify } from "./types";
 
 export const sql = bunsql;
 
@@ -13,23 +12,15 @@ function prefixedTableName(table: string, options: Options): string {
   return `${options.stagePrefix ? `${options.stagePrefix}_` : ""}${table}`;
 }
 
-function setDefaultOptions(options?: Partial<Options>): Options {
-  return {
-    ...options,
-  };
-}
-
 export async function select<T>(
   client: SQL,
   table: string,
   runtype: R.Runtype<T>,
-  options?: Prettify<Partial<Options>>,
+  options: Options = {},
 ): Promise<T[]> {
-  const allOptions = setDefaultOptions(options);
-
   const query = client`
 SELECT *
-FROM ${sql(prefixedTableName(table, allOptions))}
+FROM ${sql(prefixedTableName(table, options))}
 `;
   const result = await query;
   // Remove Bun-specific properties to avoid issues with type assertion
@@ -44,12 +35,10 @@ export async function deleteAll(
   client: SQL,
   table: string,
   wheres?: Record<string, unknown>,
-  options?: Partial<Options>,
+  options: Options = {},
 ): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-
   const query = client`
-DELETE FROM ${sql(prefixedTableName(table, allOptions))}
+DELETE FROM ${sql(prefixedTableName(table, options))}
 ${constructWhere(wheres)}
 `;
   await query;
@@ -59,12 +48,10 @@ export async function insert<T>(
   client: SQL,
   table: string,
   items: Array<T>,
-  options?: Partial<Options>,
+  options: Partial<Options> = {},
 ): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-
   const query = client`
-INSERT INTO ${sql(prefixedTableName(table, allOptions))}
+INSERT INTO ${sql(prefixedTableName(table, options))}
 ${sql(items)}
 `;
   await query;
@@ -74,11 +61,9 @@ export async function update(
   client: SQL,
   table: string,
   set: Record<string, unknown>,
-  wheres?: Record<string, unknown>,
-  options?: Partial<Options>,
+  options: Options & { wheres?: Record<string, unknown> } = {},
 ): Promise<void> {
-  const allOptions = setDefaultOptions(options);
-  const tableName = prefixedTableName(table, allOptions);
+  const tableName = prefixedTableName(table, options);
 
   const setClause = Object.entries(set)
     .map(([key, value]) => sql`${sql(key)} = ${value}`)
@@ -87,7 +72,7 @@ export async function update(
   const query = client`
 UPDATE ${sql(tableName)} 
 SET ${setClause} 
-${constructWhere(wheres)}`;
+${constructWhere(options.wheres)}`;
   await query;
 }
 

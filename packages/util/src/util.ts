@@ -26,14 +26,14 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return Bun.sleep(ms);
 }
 
-export function pickKeys(
-  item: Record<string, unknown>,
-  keys: string[],
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
+export function pickKeys<T extends Record<string, unknown>, K extends keyof T>(
+  item: T,
+  keys: K[],
+): Pick<T, K> {
+  const result = {} as Pick<T, K>;
   for (const key of keys) {
     if (key in item) {
       result[key] = item[key];

@@ -173,7 +173,12 @@ describe("Sql", () => {
       [3, "name_3", 30, 4, "name_4", 40],
     ]);
 
-    await Sql.update(client, tableName, { name: "name_1_updated" }, { id: 1 });
+    await Sql.update(
+      client,
+      tableName,
+      { name: "name_1_updated" },
+      { wheres: { id: 1 } },
+    );
 
     expect(db.getStatements()).toEqual([
       `UPDATE "test_table" SET "name" = $1 WHERE "id" = $2`,
@@ -237,7 +242,12 @@ describe("Sql", () => {
       },
     ]);
 
-    await Sql.update(client, tableName, { name: "name_1_updated" }, { id: 1 });
+    await Sql.update(
+      client,
+      tableName,
+      { name: "name_1_updated" },
+      { wheres: { id: 1 } },
+    );
     expect(db.getStatements()).toEqual([["name_1_updated", 1]]);
 
     const updated3 = await Sql.select(client, tableName, R.Record({}));
