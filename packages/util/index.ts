@@ -16,6 +16,7 @@ export * as NewRelic from "./src/new-relic";
 export * as ObjectUtil from "./src/object";
 export * as Prompt from "./src/prompt";
 export * as Random from "./src/random";
+export * from "./src/retry";
 export * as R from "./src/runtypes";
 export * as SetUtil from "./src/set";
 export * as Sql from "./src/sql";

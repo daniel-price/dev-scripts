@@ -32,6 +32,10 @@ SELECT *
 FROM ${sql(prefixedTableName(table, allOptions))}
 `;
   const result = await query;
+  // Remove Bun-specific properties to avoid issues with type assertion
+  delete result.count;
+  delete result.command;
+  delete result.lastInsertRowid;
 
   return R.assertType(R.Array(runtype), result);
 }
