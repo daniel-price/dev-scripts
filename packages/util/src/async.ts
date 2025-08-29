@@ -10,6 +10,8 @@ export async function* batch<T>(
       batch = [];
     }
   }
+
+  yield batch; //yield remaining items even if they are smaller than batchSize
 }
 
 export async function* map<T, R>(
