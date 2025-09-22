@@ -120,21 +120,21 @@ class Stack {
     const success = await this.waitForDone();
     if (!success) {
       const events = await describeStackEvents(this._stackName);
-      Logger.info(
-        events.StackEvents?.filter(
+      const errorMessage = events.StackEvents?.filter(
+        (s) =>
+          ["DELETE_FAILED", "UPDATE_ROLLBACK_FAILED"].includes(
+            s.ResourceStatus || "",
+          ) &&
+          s.Timestamp &&
+          s.Timestamp.getTime() > startTime,
+      )
+        .map(
           (s) =>
-            ["DELETE_FAILED", "UPDATE_ROLLBACK_FAILED"].includes(
-              s.ResourceStatus || "",
-            ) &&
-            s.Timestamp &&
-            s.Timestamp.getTime() > startTime,
+            `${s.StackName} ${s.ResourceStatus}: ${s.ResourceStatusReason}`,
         )
-          .map(
-            (s) =>
-              `${s.StackName} ${s.ResourceStatus}: ${s.ResourceStatusReason}`,
-          )
-          .join("\n"),
-      );
+        .join("\n");
+
+      Logger.info(errorMessage);
     }
     return success;
   }
