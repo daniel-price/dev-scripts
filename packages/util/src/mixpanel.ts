@@ -17,14 +17,6 @@ export async function listEvents<T>(
   runtype: R.Runtype<T>,
   params: Partial<ListEventsParams> = {},
 ): Promise<T[]> {
-  const where = params.whereProperties
-    ? Object.entries(params.whereProperties)
-        .map(([key, value]) => {
-          return `properties["${key}"] == "${value}"`;
-        })
-        .join(" and ")
-    : undefined;
-
   const fromDate = DateUtil.format(
     params.fromDate || DateUtil.subDays(new Date(), 1),
     "yyyy-MM-dd",
@@ -33,30 +25,41 @@ export async function listEvents<T>(
 
   const queryParams: Record<string, string | undefined> = {
     project_id: projectId,
-    from_date: fromDate,
-    to_date: toDate,
-    event: JSON.stringify(eventNames),
-    where,
   };
 
-  const res = await Http.get(
-    "https://data-eu.mixpanel.com/api/query/engage",
-    R.String,
+  const whereArray = Object.entries(params.whereProperties || {});
+  const filterStatement = whereArray.length
+    ? `.filter(event => ${whereArray
+        .map(([key, value]) => `event.properties['${key}'] === '${value}'`)
+        .join(").filter(event => ")})`
+    : ""; // Each property being filtered must be in it's own filter function
+
+  const script = `
+      function main() {
+        return Events({
+          from_date: '${fromDate}',
+          to_date: '${toDate}',
+          event_selectors: [${eventNames.map((selector) => `{event: '${selector}'}`).join(",")}]
+        })
+        ${filterStatement}
+      }
+`;
+
+  const res = await Http.post(
+    "https://eu.mixpanel.com/api/query/jql",
+    R.Array(runtype),
     {
       queryParams,
       headers: {
+        Accept: "application/json",
         authorization: `Basic ${bearerToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      responseAsText: true,
+      body: `script=${script.replace(/[\n\r]/g, "")}`,
     },
   );
 
-  return res
-    .split("\n")
-    .filter((line) => !!line)
-    .map((line) => {
-      return Json.parse(line, runtype);
-    });
+  return res as T[];
 }
 
 export async function listProfile<T>(
