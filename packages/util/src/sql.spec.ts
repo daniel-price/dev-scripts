@@ -187,28 +187,33 @@ describe("Sql", () => {
 
     const updated = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([`SELECT * FROM "test_table"`]);
-    expect(updated).toEqual([
-      {
-        age: 20,
-        id: 2,
-        name: "name_2",
-      },
-      {
-        age: 30,
-        id: 3,
-        name: "name_3",
-      },
-      {
-        age: 40,
-        id: 4,
-        name: "name_4",
-      },
-      {
-        age: 10,
-        id: 1,
-        name: "name_1_updated",
-      },
-    ]);
+    expect(updated).toEqual({
+      affectedRows: null,
+      count: 4,
+      lastInsertRowid: null,
+      records: [
+        {
+          age: 20,
+          id: 2,
+          name: "name_2",
+        },
+        {
+          age: 30,
+          id: 3,
+          name: "name_3",
+        },
+        {
+          age: 40,
+          id: 4,
+          name: "name_4",
+        },
+        {
+          age: 10,
+          id: 1,
+          name: "name_1_updated",
+        },
+      ],
+    });
 
     await Sql.update(client, tableName, { name: "name_updated" });
 
@@ -219,28 +224,33 @@ describe("Sql", () => {
 
     const updated2 = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
-    expect(updated2).toEqual([
-      {
-        age: 20,
-        id: 2,
-        name: "name_updated",
-      },
-      {
-        age: 30,
-        id: 3,
-        name: "name_updated",
-      },
-      {
-        age: 40,
-        id: 4,
-        name: "name_updated",
-      },
-      {
-        age: 10,
-        id: 1,
-        name: "name_updated",
-      },
-    ]);
+    expect(updated2).toEqual({
+      affectedRows: null,
+      count: 4,
+      lastInsertRowid: null,
+      records: [
+        {
+          age: 20,
+          id: 2,
+          name: "name_updated",
+        },
+        {
+          age: 30,
+          id: 3,
+          name: "name_updated",
+        },
+        {
+          age: 40,
+          id: 4,
+          name: "name_updated",
+        },
+        {
+          age: 10,
+          id: 1,
+          name: "name_updated",
+        },
+      ],
+    });
 
     await Sql.update(
       client,
@@ -252,28 +262,33 @@ describe("Sql", () => {
 
     const updated3 = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
-    expect(updated3).toEqual([
-      {
-        age: 20,
-        id: 2,
-        name: "name_updated",
-      },
-      {
-        age: 30,
-        id: 3,
-        name: "name_updated",
-      },
-      {
-        age: 40,
-        id: 4,
-        name: "name_updated",
-      },
-      {
-        age: 10,
-        id: 1,
-        name: "name_1_updated",
-      },
-    ]);
+    expect(updated3).toEqual({
+      affectedRows: null,
+      count: 4,
+      lastInsertRowid: null,
+      records: [
+        {
+          age: 20,
+          id: 2,
+          name: "name_updated",
+        },
+        {
+          age: 30,
+          id: 3,
+          name: "name_updated",
+        },
+        {
+          age: 40,
+          id: 4,
+          name: "name_updated",
+        },
+        {
+          age: 10,
+          id: 1,
+          name: "name_1_updated",
+        },
+      ],
+    });
     await Sql.deleteAll(client, tableName, { id: 1 });
     expect(db.getStatements()).toEqual([
       `DELETE FROM "test_table" WHERE "id" = $1`,
@@ -281,28 +296,38 @@ describe("Sql", () => {
     ]);
     const afterDeleteAll = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
-    expect(afterDeleteAll).toEqual([
-      {
-        age: 20,
-        id: 2,
-        name: "name_updated",
-      },
-      {
-        age: 30,
-        id: 3,
-        name: "name_updated",
-      },
-      {
-        age: 40,
-        id: 4,
-        name: "name_updated",
-      },
-    ]);
+    expect(afterDeleteAll).toEqual({
+      affectedRows: null,
+      count: 3,
+      lastInsertRowid: null,
+      records: [
+        {
+          age: 20,
+          id: 2,
+          name: "name_updated",
+        },
+        {
+          age: 30,
+          id: 3,
+          name: "name_updated",
+        },
+        {
+          age: 40,
+          id: 4,
+          name: "name_updated",
+        },
+      ],
+    });
 
     await Sql.deleteAll(client, tableName);
     expect(db.getStatements()).toEqual([`DELETE FROM "test_table"`]);
     const afterDeleteAll2 = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
-    expect(afterDeleteAll2).toEqual([]);
+    expect(afterDeleteAll2).toEqual({
+      affectedRows: null,
+      count: 0,
+      lastInsertRowid: null,
+      records: [],
+    });
   });
 });

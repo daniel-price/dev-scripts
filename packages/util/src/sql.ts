@@ -17,18 +17,42 @@ export async function select<T>(
   table: string,
   runtype: R.Runtype<T>,
   options: Options = {},
-): Promise<T[]> {
+): Promise<{
+  records: T[];
+  count: number;
+  affectedRows: number | null;
+  lastInsertRowid: number | null;
+}> {
   const query = client`
 SELECT *
 FROM ${sql(prefixedTableName(table, options))}
 `;
   const result = await query;
-  // Remove Bun-specific properties to avoid issues with type assertion
-  delete result.count;
-  delete result.command;
-  delete result.lastInsertRowid;
+  if (!(result && typeof result === "object")) {
+    throw new Error("Unexpected result from database query");
+  }
+  const records = Object.keys(result)
+    .filter((k) => !isNaN(Number(k)))
+    .map((key) => {
+      return result[key];
+    });
 
-  return R.assertType(R.Array(runtype), result);
+  const finalResult = {
+    records,
+    count: result.count,
+    affectedRows: result.affectedRows,
+    lastInsertRowid: result.lastInsertRowid,
+  };
+
+  return R.assertType(
+    R.Record({
+      records: R.Array(runtype),
+      count: R.Number,
+      affectedRows: R.Nullable(R.Number),
+      lastInsertRowid: R.Nullable(R.Number),
+    }),
+    finalResult,
+  );
 }
 
 export async function deleteAll(
@@ -73,8 +97,65 @@ export async function update(
 UPDATE ${sql(tableName)} 
 SET ${setClause} 
 ${constructWhere(options.wheres)}`;
+  // const result = await query;
+
+  // const res = extractPropertiesFromArray(
+  //   result,
+  //   R.Record({
+  //     count: R.Number,
+  //     command: R.String,
+  //     lastInsertRowid: R.Nullable(R.Number),
+  //     affectedRows: R.Nullable(R.Number),
+  //   }) as const,
+  // );
+
   await query;
 }
+
+// function extractPropertiesFromArray<
+//   T extends string,
+//   V extends string | number,
+// >(
+//   a: unknown,
+//   additionalPropertiesRuntype: R.Record<T, V>,
+// ): {
+//   records: unknown[];
+// } & { [K in T]: unknown } {
+//   if (!Array.isArray(a)) {
+//     throw new Error("Cannot extract properties from non-array or empty array");
+//   }
+//
+//   const result = Object.keys(a).reduce(
+//     (prev, curr) => {
+//       if (!isNaN(Number(curr))) {
+//         prev.records.push((a as any)[curr]);
+//       } else if (properties.includes(curr)) {
+//         prev[curr] = (a as any)[curr];
+//       } else {
+//         Logger.warn(`Unexpected property in SQL result: ${curr}`);
+//       }
+//       return prev;
+//     },
+//     { records: new Array<unknown>() },
+//   );
+//
+//   return R.assertType(
+//     R.Record({
+//       records: R.Array(R.Unknown),
+//     }).And(
+//       R.Partial(
+//         properties.reduce(
+//           (acc, prop) => {
+//             acc[prop] = R.Unknown;
+//             return acc;
+//           },
+//           {} as Record<T, R.Runtype<unknown>>,
+//         ),
+//       ),
+//     ),
+//     result,
+//   );
+// }
 
 function constructWhere(
   wheres: Record<string, unknown> | undefined,

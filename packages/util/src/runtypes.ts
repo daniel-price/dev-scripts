@@ -1,4 +1,4 @@
-import { InstanceOf, Runtype, Static, Unknown } from "runtypes";
+import { InstanceOf, Null, Runtype, Static, Unknown } from "runtypes";
 import { RuntypeBase } from "runtypes/lib/runtype";
 
 export * from "runtypes";
@@ -52,4 +52,10 @@ export function runtypeFromEnum<EnumType>(
   return Unknown.withConstraint<EnumType>(
     (object: unknown) => isEnumValue(object) || errorMessage(object),
   );
+}
+
+export function Nullable<R extends Runtype>(
+  runtype: R,
+): Runtype<Static<R> | null> {
+  return runtype.Or(Null);
 }

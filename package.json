@@ -5,6 +5,7 @@
     "packages/util",
     "packages/aws",
     "packages/dentally-util",
+    "packages/dentally-scripts",
     "packages/scripts"
   ],
   "scripts": {

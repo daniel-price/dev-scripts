@@ -14,7 +14,7 @@ export async function main(args: T_Args): Promise<void> {
   const items = await Sql.select(client, args.table, R.Record({}), {
     stagePrefix: args.stagePrefix,
   });
-  for (const item of items) {
+  for (const item of items.records) {
     Logger.info("TableItems:", item);
   }
 }
