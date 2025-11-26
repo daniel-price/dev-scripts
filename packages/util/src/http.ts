@@ -30,9 +30,8 @@ type Options = {
 
 function getRequestParams(method: string, options?: Options): RequestInit {
   const headers = options?.headers;
-  const body = isObject(options?.body)
-    ? Json.stringify(options.body)
-    : options?.body;
+  const bodyValue = options?.body;
+  const body = isObject(bodyValue) ? Json.stringify(bodyValue) : bodyValue;
 
   const requestParams: RequestInit = {
     method,
@@ -50,7 +49,9 @@ async function doRequest<T>(
   options?: Options,
 ): Promise<T> {
   const fullUrl = options?.queryParams
-    ? `${url}?${new URLSearchParams(ObjectUtil.removeUndefinedValues(options.queryParams)).toString()}`
+    ? `${url}?${new URLSearchParams(
+        ObjectUtil.removeUndefinedValues(options.queryParams),
+      ).toString()}`
     : url;
   const requestParams = getRequestParams(method, options);
 

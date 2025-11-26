@@ -149,7 +149,9 @@ describe("Sql", () => {
     expect(db.getStatements()).toEqual(["SELECT 1"]);
     await client`DROP TABLE IF EXISTS ${Sql.sql(tableName)}`;
     expect(db.getStatements()).toEqual([`DROP TABLE IF EXISTS "test_table"`]);
-    await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(tableName)} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
+    await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(
+      tableName,
+    )} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
     expect(db.getStatements()).toEqual([
       `CREATE TABLE IF NOT EXISTS "test_table" (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`,
     ]);

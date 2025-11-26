@@ -3,26 +3,26 @@
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
-    "@aws-sdk/client-api-gateway": "^3.535.0",
-    "@aws-sdk/client-cloudformation": "^3.502.0",
-    "@aws-sdk/client-dynamodb": "^3.502.0",
-    "@aws-sdk/client-ec2": "^3.502.0",
-    "@aws-sdk/client-ecs": "^3.502.0",
-    "@aws-sdk/client-evidently": "^3.502.0",
-    "@aws-sdk/client-lambda": "^3.502.0",
-    "@aws-sdk/client-route-53": "^3.525.0",
-    "@aws-sdk/client-s3": "^3.502.0",
-    "@aws-sdk/client-secrets-manager": "^3.502.0",
-    "@aws-sdk/client-sfn": "^3.502.0",
-    "@aws-sdk/client-ssm": "^3.511.0",
-    "@aws-sdk/client-sts": "^3.502.0",
-    "@aws-sdk/util-dynamodb": "^3.502.0",
+    "@aws-sdk/client-api-gateway": "3.535.0",
+    "@aws-sdk/client-cloudformation": "3.502.0",
+    "@aws-sdk/client-dynamodb": "3.502.0",
+    "@aws-sdk/client-ec2": "3.502.0",
+    "@aws-sdk/client-ecs": "3.502.0",
+    "@aws-sdk/client-evidently": "3.502.0",
+    "@aws-sdk/client-lambda": "3.502.0",
+    "@aws-sdk/client-route-53": "3.525.0",
+    "@aws-sdk/client-s3": "3.502.0",
+    "@aws-sdk/client-secrets-manager": "3.502.0",
+    "@aws-sdk/client-sfn": "3.502.0",
+    "@aws-sdk/client-ssm": "3.511.0",
+    "@aws-sdk/client-sts": "3.502.0",
+    "@aws-sdk/util-dynamodb": "3.502.0",
     "@dev/util": "0.0.1",
-    "@getvim/execute": "^1.0.0",
-    "aws-sdk": "^2.1546.0",
-    "log-update": "^6.0.0"
+    "@getvim/execute": "1.0.0",
+    "aws-sdk": "2.1546.0",
+    "log-update": "6.0.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.5"
+    "@types/bun": "1.0.5"
   }
 }

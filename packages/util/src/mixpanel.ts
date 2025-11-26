@@ -39,7 +39,9 @@ export async function listEvents<T>(
         return Events({
           from_date: '${fromDate}',
           to_date: '${toDate}',
-          event_selectors: [${eventNames.map((selector) => `{event: '${selector}'}`).join(",")}]
+          event_selectors: [${eventNames
+            .map((selector) => `{event: '${selector}'}`)
+            .join(",")}]
         })
         ${filterStatement}
       }

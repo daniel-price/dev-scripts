@@ -48,7 +48,9 @@ export function runtypeFromEnum<EnumType>(
   const isEnumValue = (input: unknown): input is EnumType =>
     values.includes(input);
   const errorMessage = (input: unknown): string =>
-    `Failed constraint check. Expected one of ${JSON.stringify(values)}, but received ${JSON.stringify(input)}`;
+    `Failed constraint check. Expected one of ${JSON.stringify(
+      values,
+    )}, but received ${JSON.stringify(input)}`;
   return Unknown.withConstraint<EnumType>(
     (object: unknown) => isEnumValue(object) || errorMessage(object),
   );

@@ -1,10 +1,10 @@
 type RequireLiteral<K extends PropertyKey> = string extends K
   ? never
   : number extends K
-    ? never
-    : symbol extends K
-      ? never
-      : K;
+  ? never
+  : symbol extends K
+  ? never
+  : K;
 
 export function has<K extends PropertyKey>(
   obj: unknown,

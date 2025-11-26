@@ -5,10 +5,10 @@
   "dependencies": {
     "@dev/aws": "0.0.1",
     "@dev/util": "0.0.1",
-    "envalid": "^8.0.0",
-    "mri": "^1.2.0"
+    "envalid": "8.0.0",
+    "mri": "1.2.0"
   },
   "dev-dependencies": {
-    "@types/bun": "^1.0.5"
+    "@types/bun": "1.0.5"
   }
 }

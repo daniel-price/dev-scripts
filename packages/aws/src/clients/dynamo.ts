@@ -173,7 +173,11 @@ export async function deleteItems(
 
     totalCount += batch.length;
     Logger.info(
-      `Deleted batch of ${batch.length} items from ${tableName}, total: ${totalCount}${options.totalCount ? `/${options.totalCount}` : ""}`,
+      `Deleted batch of ${
+        batch.length
+      } items from ${tableName}, total: ${totalCount}${
+        options.totalCount ? `/${options.totalCount}` : ""
+      }`,
     );
   }
 }

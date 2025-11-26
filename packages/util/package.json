@@ -3,18 +3,18 @@
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
-    "bun-promptx": "^0.2.0",
-    "copy-paste": "^1.5.3",
-    "csv": "^6.3.6",
-    "date-fns": "^4.1.0",
-    "moize": "^6.1.6",
-    "runtypes": "^6.7.0",
-    "uuid": "^11.1.0"
+    "bun-promptx": "0.2.0",
+    "copy-paste": "1.5.3",
+    "csv": "6.3.6",
+    "date-fns": "4.1.0",
+    "moize": "6.1.6",
+    "runtypes": "6.7.0",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.3.3",
-    "@electric-sql/pglite-socket": "^0.0.8",
-    "@types/bun": "^1.0.5",
-    "@types/copy-paste": "^1.1.33"
+    "@electric-sql/pglite": "0.3.3",
+    "@electric-sql/pglite-socket": "0.0.8",
+    "@types/bun": "1.0.5",
+    "@types/copy-paste": "1.1.33"
   }
 }
