@@ -1,4 +1,5 @@
 import moize from "moize";
+import util from "util";
 
 import * as Enum from "./enum";
 
@@ -37,7 +38,7 @@ export function error(context: string, e?: unknown): void {
   }
 
   if (typeof e === "object") {
-    console.error(context, e); // eslint-disable-line no-console
+    console.error(context, ...mapArgs([e])); // eslint-disable-line no-console
     return;
   }
 
@@ -68,20 +69,29 @@ function shouldLog(logLevel: LogLevels): boolean {
   return logLevel >= envLogLevelEnum;
 }
 
+function mapArgs(args: unknown[]): unknown[] {
+  return args.map((a) => {
+    if (typeof a === "object") {
+      return util.inspect(a, { depth: null, colors: true });
+    }
+    return a;
+  });
+}
+
 export function debug(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.DEBUG)) return;
-  // const expandedArgs = expandArrayArgs(args)
-  console.debug("\n", ...args); // eslint-disable-line no-console
+  // eslint-disable-next-line no-console
+  console.debug("\n", ...mapArgs(args));
 }
 
 export function warn(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.WARN)) return;
-  // const expandedArgs = expandArrayArgs(args)
-  console.warn("\n", ...args); // eslint-disable-line no-console
+  // eslint-disable-next-line no-console
+  console.warn("\n", ...mapArgs(args));
 }
 
 export function info(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.INFO)) return;
-  // const expandedArgs = expandArrayArgs(args)
-  console.info("\n", ...args); // eslint-disable-line no-console
+  // eslint-disable-next-line no-console
+  console.info("\n", ...mapArgs(args));
 }

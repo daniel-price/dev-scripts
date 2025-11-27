@@ -257,10 +257,12 @@ describe("Sql", () => {
     await Sql.update(
       client,
       tableName,
-      { name: "name_1_updated" },
+      { name: "danp-dentally.danp.sandbox.portal.dental" },
       { wheres: { id: 1 } },
     );
-    expect(db.getStatements()).toEqual([["name_1_updated", 1]]);
+    expect(db.getStatements()).toEqual([
+      ["danp-dentally.danp.sandbox.portal.dental", 1],
+    ]);
 
     const updated3 = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
@@ -287,14 +289,18 @@ describe("Sql", () => {
         {
           age: 10,
           id: 1,
-          name: "name_1_updated",
+          name: "danp-dentally.danp.sandbox.portal.dental",
         },
       ],
     });
-    await Sql.deleteAll(client, tableName, { id: 1 });
+    await Sql.deleteAll(client, tableName, {
+      wheres: {
+        name: "danp-dentally.danp.sandbox.portal.dental",
+      },
+    });
     expect(db.getStatements()).toEqual([
-      `DELETE FROM "test_table" WHERE "id" = $1`,
-      [1],
+      `DELETE FROM "test_table" WHERE "name" = $1`,
+      ["danp-dentally.danp.sandbox.portal.dental"],
     ]);
     const afterDeleteAll = await Sql.select(client, tableName, R.Record({}));
     expect(db.getStatements()).toEqual([[]]);
