@@ -160,6 +160,7 @@ export async function deleteItems(
         Key: marshall(key),
       },
     }));
+    if (!deleteRequests.length) continue;
 
     await retry(() =>
       ddb.send(
