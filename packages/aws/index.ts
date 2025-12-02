@@ -1,5 +1,7 @@
 export * as ApiGateway from "./src/clients/api-gateway";
 export * as CloudFormation from "./src/clients/cloudformation/";
+export * as CodeBuild from "./src/clients/codebuild";
+export * as CodePipeline from "./src/clients/codepipeline";
 export * as DynamoDB from "./src/clients/dynamo";
 export * as EC2 from "./src/clients/ec2";
 export * as ECS from "./src/clients/ecs";

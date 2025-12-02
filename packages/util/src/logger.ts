@@ -14,6 +14,8 @@ const LOG_LEVELS = {
 
 type LogLevels = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];
 
+util.inspect.defaultOptions.maxArrayLength = null; //prevent "... X more items"
+
 function isExecuteError(e: unknown): e is T_ExecuteError {
   if (!e) return false;
   if (typeof e !== "object") return false;

@@ -7,11 +7,13 @@ import {
   DescribeStacksCommand,
   DescribeStacksCommandOutput,
   DescribeStacksInput,
+  ListStacksCommand,
+  StackSummary,
 } from "@aws-sdk/client-cloudformation";
 import { Enum, Logger } from "@dev/util";
 import { isNonNil } from "@dev/util/src/util";
 
-import { aws, awsJSON, getQueryArg } from "../../helpers/aws";
+import { aws, awsJSON, getQueryArg, yieldAll } from "../../helpers/aws";
 import { G_Stack, T_Stack } from "./cloudformation-types";
 
 const cf = new CloudFormationClient();
@@ -52,6 +54,8 @@ export const ACTIVE_STACK_STATUSES = [
   E_STACK_STATUS.CREATE_COMPLETE,
   E_STACK_STATUS.DELETE_FAILED,
   E_STACK_STATUS.UPDATE_COMPLETE,
+  E_STACK_STATUS.UPDATE_ROLLBACK_COMPLETE,
+  E_STACK_STATUS.ROLLBACK_COMPLETE,
 ];
 
 export async function describeStackResources(
@@ -137,4 +141,22 @@ export async function describeStack(
   const params: DescribeStacksInput = { StackName: stackName };
   const res = await cf.send(new DescribeStacksCommand(params));
   return res;
+}
+
+export function listStacks(
+  stackStatusFilter: E_STACK_STATUS[],
+): AsyncGenerator<StackSummary> {
+  return yieldAll(async (token?: string | undefined) => {
+    const result = await cf.send(
+      new ListStacksCommand({
+        NextToken: token,
+        StackStatusFilter: stackStatusFilter,
+      }),
+    );
+    return { results: result.StackSummaries, nextToken: result.NextToken };
+  });
+}
+
+export function listActiveStacks(): AsyncGenerator<StackSummary> {
+  return listStacks(ACTIVE_STACK_STATUSES);
 }

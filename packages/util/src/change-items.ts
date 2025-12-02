@@ -2,12 +2,16 @@ import * as Json from "./json";
 import * as Logger from "./logger";
 import * as Prompt from "./prompt";
 
-export async function changeItems<T extends string | Record<string, unknown>>(
+export async function changeItems<T extends string | object>(
   description: string,
   items: T[],
   changeFn: (value: T) => Promise<unknown>,
   itemNameFn = (value: T): unknown => Json.stringify(value, false),
 ): Promise<boolean> {
+  if (items.length === 0) {
+    Logger.info(`no items to ${description}`);
+    return true;
+  }
   await confirmChangeItems(description, items.map(itemNameFn));
 
   let allSuccessful = true;

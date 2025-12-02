@@ -2,18 +2,19 @@ import * as Logger from "./logger";
 import * as R from "./runtypes";
 
 export function stringify(
-  json:
-    | Record<string, unknown>
+  obj:
+    | object
     | Array<Record<string, unknown> | string>
     | string
     | Map<string, unknown>,
   prettyPrint = true,
 ): string {
   try {
-    if (prettyPrint) return JSON.stringify(json, replacer, 2);
-    return JSON.stringify(json);
+    if (typeof obj === "string") return obj;
+    if (prettyPrint) return JSON.stringify(obj, replacer, 2);
+    return JSON.stringify(obj);
   } catch (e) {
-    Logger.error("Unable to stringify json", json);
+    Logger.error("Unable to stringify json", obj);
     return "--NULL--";
   }
 }

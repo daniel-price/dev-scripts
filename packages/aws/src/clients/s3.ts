@@ -1,13 +1,16 @@
 import {
   _Object,
+  Bucket,
   DeleteBucketCommand,
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListBucketsCommand,
   ListObjectsCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { ChangeItems, Logger } from "@dev/util";
+import { changeItems } from "@dev/util/src/change-items";
 
 const s3 = new S3Client();
 
@@ -33,8 +36,14 @@ export async function getObject(bucket: string, key: string): Promise<string> {
   return res.Body.transformToString();
 }
 
-export async function deleteBucket(bucket: string): Promise<boolean> {
+export async function deleteBucket(
+  bucket: string,
+  options: { emptyFirst?: boolean } & Partial<Options> = {},
+): Promise<boolean> {
   try {
+    if (options.emptyFirst) {
+      await emptyBucket(bucket, { skipPrompt: options.skipPrompt });
+    }
     const command = new DeleteBucketCommand({ Bucket: bucket });
     await s3.send(command);
     Logger.info(`Bucket ${bucket} deleted successfully.`);
@@ -43,6 +52,15 @@ export async function deleteBucket(bucket: string): Promise<boolean> {
     Logger.error(`Error deleting bucket ${bucket}`, e);
     return false;
   }
+}
+
+export async function deleteBuckets(
+  bucketNames: string[],
+  options: Parameters<typeof deleteBucket>[1] = {},
+): Promise<void> {
+  await changeItems("Delete buckets", bucketNames, (bucketName: string) =>
+    deleteBucket(bucketName, options),
+  );
 }
 
 export async function emptyBucket(
@@ -107,4 +125,9 @@ export async function headObject(
   } catch (e) {
     return false;
   }
+}
+
+export async function listBuckets(): Promise<Bucket[]> {
+  const result = await s3.send(new ListBucketsCommand({}));
+  return result.Buckets || [];
 }

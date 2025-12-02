@@ -134,7 +134,13 @@ class Stack {
         )
         .join("\n");
 
-      Logger.info(errorMessage);
+      //Debug lack of error messsage..
+      if (!errorMessage?.trim().length) {
+        Logger.info({ events });
+        Logger.error("No error message found in stack events.");
+      }
+
+      Logger.info("STACK EVENT:", errorMessage);
     }
     return success;
   }
