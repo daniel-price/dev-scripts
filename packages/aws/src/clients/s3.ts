@@ -9,7 +9,7 @@ import {
   ListObjectsCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { ChangeItems, Logger } from "@dev/util";
+import { ChangeItems, Logger, Util } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
 const s3 = new S3Client();
@@ -38,7 +38,7 @@ export async function getObject(bucket: string, key: string): Promise<string> {
 
 export async function deleteBucket(
   bucket: string,
-  options: { emptyFirst?: boolean } & Partial<Options> = {},
+  options: { emptyFirst?: boolean; region?: string } & Partial<Options> = {},
 ): Promise<boolean> {
   try {
     if (options.emptyFirst) {
@@ -49,6 +49,31 @@ export async function deleteBucket(
     Logger.info(`Bucket ${bucket} deleted successfully.`);
     return true;
   } catch (e) {
+    if (
+      e instanceof Error &&
+      e.cause &&
+      e.cause instanceof Error &&
+      e.cause.name === "PermanentRedirect" &&
+      Util.has(e.cause, "Endpoint")
+    ) {
+      let region: string;
+      if (e.cause.Endpoint === "s3.amazonaws.com") {
+        region = "us-east-1";
+      } else {
+        throw new Error("Unhandled endpoint case", {
+          cause: e.cause.Endpoint,
+        });
+      }
+      const existingRegion = await s3.config.region();
+      Logger.info("Changing from ", existingRegion, " to ", region);
+      s3.config.region = async (): Promise<string> => region;
+      await deleteBucket(bucket, options);
+      Logger.info(`Bucket ${bucket} deleted successfully.`);
+      Logger.info("Changing back to from ", region, " to ", existingRegion);
+      s3.config.region = async (): Promise<string> => existingRegion;
+      return true;
+    }
+
     Logger.error(`Error deleting bucket ${bucket}`, e);
     return false;
   }
@@ -109,8 +134,7 @@ export async function deleteObjects(
     Bucket: bucket,
     Delete: { Objects: objects },
   });
-  const result = await s3.send(command);
-  Logger.info("deleteObjects result", result);
+  await s3.send(command);
 
   return true;
 }

@@ -47,7 +47,7 @@ export enum E_STACK_STATUS {
 function isValidStackStatus(
   value: string,
 ): value is keyof typeof E_STACK_STATUS {
-  return value in E_STACK_STATUS;
+  return value in E_STACK_STATUS || value === "DELETE_SKIPPED";
 }
 
 export const ACTIVE_STACK_STATUSES = [
