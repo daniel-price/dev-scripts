@@ -2,7 +2,7 @@ import {
   GetSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
-import { Json, Logger, R } from "@dev/util";
+import { Json, R } from "@dev/util";
 
 const sm = new SecretsManagerClient();
 
@@ -15,8 +15,13 @@ export async function getStringSecret(secretId: string): Promise<string> {
     if (!res.SecretString) throw new Error("no secret string set!");
     return res.SecretString;
   } catch (e) {
-    Logger.error(`Error getting secret ${secretId}`, e);
-    throw new Error("Error getting secret");
+    const error = new Error("Error getting secret", {
+      cause: {
+        secretId,
+        originalError: e,
+      },
+    });
+    throw error;
   }
 }
 

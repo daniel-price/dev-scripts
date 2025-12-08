@@ -41,6 +41,7 @@ export async function deleteBucket(
   options: { emptyFirst?: boolean; region?: string } & Partial<Options> = {},
 ): Promise<boolean> {
   try {
+    Logger.info(`Deleting bucket ${bucket}...`);
     if (options.emptyFirst) {
       await emptyBucket(bucket, { skipPrompt: options.skipPrompt });
     }
@@ -49,34 +50,68 @@ export async function deleteBucket(
     Logger.info(`Bucket ${bucket} deleted successfully.`);
     return true;
   } catch (e) {
-    if (
-      e instanceof Error &&
-      e.cause &&
-      e.cause instanceof Error &&
-      e.cause.name === "PermanentRedirect" &&
-      Util.has(e.cause, "Endpoint")
-    ) {
-      let region: string;
-      if (e.cause.Endpoint === "s3.amazonaws.com") {
-        region = "us-east-1";
-      } else {
-        throw new Error("Unhandled endpoint case", {
-          cause: e.cause.Endpoint,
-        });
-      }
-      const existingRegion = await s3.config.region();
-      Logger.info("Changing from ", existingRegion, " to ", region);
-      s3.config.region = async (): Promise<string> => region;
-      await deleteBucket(bucket, options);
-      Logger.info(`Bucket ${bucket} deleted successfully.`);
-      Logger.info("Changing back to from ", region, " to ", existingRegion);
-      s3.config.region = async (): Promise<string> => existingRegion;
-      return true;
-    }
+    const handled = await handleRedirect(e, () =>
+      deleteBucket(bucket, options),
+    );
+    if (handled) return true;
 
     Logger.error(`Error deleting bucket ${bucket}`, e);
     return false;
   }
+}
+
+async function handleRedirect(
+  e: unknown,
+  fn: () => Promise<unknown>,
+): Promise<boolean> {
+  let endpoint = "";
+
+  if (
+    e instanceof Error &&
+    e.cause &&
+    e.cause instanceof Error &&
+    e.cause.name === "PermanentRedirect" &&
+    Util.has(e.cause, "Endpoint") &&
+    typeof e.cause.Endpoint === "string"
+  ) {
+    endpoint = e.cause.Endpoint;
+  }
+
+  if (
+    e instanceof Error &&
+    e.name === "PermanentRedirect" &&
+    Util.has(e, "Endpoint") &&
+    typeof e.Endpoint === "string"
+  ) {
+    endpoint = e.Endpoint;
+  }
+
+  if (!endpoint) {
+    return false;
+  }
+
+  let region: string;
+  if (endpoint === "s3.amazonaws.com") {
+    region = "us-east-1";
+  } else {
+    const match = endpoint.match(/^.*s3[.-](.+)[.-]amazonaws\.com$/);
+    if (match && match[1]) {
+      region = match[1];
+    } else {
+      throw new Error("Could not parse region from endpoint", {
+        cause: { endpoint },
+      });
+    }
+  }
+  const existingRegion = await s3.config.region();
+  Logger.info("Changing from", existingRegion, "to ", region);
+  s3.config.region = async (): Promise<string> => region;
+  Logger.info("Retrying operation in new region...");
+  await fn();
+  Logger.info("Operation succeeded.");
+  Logger.info("Changing back to from", region, "to ", existingRegion);
+  s3.config.region = async (): Promise<string> => existingRegion;
+  return true;
 }
 
 export async function deleteBuckets(
@@ -94,7 +129,9 @@ export async function emptyBucket(
 ): Promise<boolean> {
   while (true) {
     try {
+      Logger.info(`Deleting bucket ${bucket}...`);
       const objects = await listObjectsInBucket(bucket);
+      Logger.info(`Found ${objects.length} objects in bucket ${bucket}.`);
       if (objects.length === 0) {
         Logger.info(`Bucket ${bucket} is already empty.`);
         return true;
@@ -109,6 +146,11 @@ export async function emptyBucket(
         options,
       );
     } catch (e) {
+      const handled = await handleRedirect(e, () =>
+        emptyBucket(bucket, options),
+      );
+      if (handled) return true;
+
       throw new Error(`Error emptying ${bucket} bucket`, { cause: e });
     }
   }
