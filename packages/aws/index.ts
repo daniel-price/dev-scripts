@@ -13,4 +13,3 @@ export * as S3 from "./src/clients/s3";
 export * as SecretsManager from "./src/clients/secretsManager";
 export * as StepFunctions from "./src/clients/step-function";
 export * as STS from "./src/clients/sts";
-export * as Query from "./src/helpers/query";
