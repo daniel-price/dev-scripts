@@ -16,7 +16,7 @@ import { ChangeItems, Json, Logger, R, retry } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
-import { awsJSON, getAll, getQueryArg } from "../helpers/aws";
+import { awsJSON, getQueryArg, yieldAll } from "../helpers/aws";
 
 const G_Lambda = R.Record({
   FunctionName: R.String,
@@ -26,8 +26,8 @@ type T_Lambda = R.Static<typeof G_Lambda>;
 
 const lambda = new LambdaClient();
 
-export async function listLambdaFunctions(): Promise<FunctionConfiguration[]> {
-  return await getAll(async (nextToken?: string) => {
+export function listLambdaFunctions(): AsyncGenerator<FunctionConfiguration> {
+  return yieldAll(async (nextToken?: string) => {
     const res = await lambda.send(
       new ListFunctionsCommand({ Marker: nextToken }),
     );

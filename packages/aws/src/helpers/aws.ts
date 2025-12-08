@@ -51,23 +51,6 @@ function getFieldNameString(fieldNames?: string | string[]): string {
   return `.${fieldNames}`;
 }
 
-export async function getAll<Result, Token>(
-  fn: (
-    token?: Token,
-  ) => Promise<{ results?: Result[]; nextToken: Token | undefined }>,
-  token?: Token,
-): Promise<Result[]> {
-  const allResults = [];
-  let nextToken = token;
-  do {
-    const res = await retry(() => fn(nextToken));
-    nextToken = res.nextToken;
-    const { results = [] } = res;
-    allResults.push(...results);
-  } while (nextToken);
-  return allResults;
-}
-
 export async function* yieldAll<Result, Token>(
   fn: (
     token?: Token,
