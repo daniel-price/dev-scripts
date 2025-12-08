@@ -1,10 +1,7 @@
-import { R } from "@dev/util";
+import { StackSummary as internalStackSummary } from "@aws-sdk/client-cloudformation";
+import { RequiredFields } from "@dev/util/src/types";
 
-export const G_Stack = R.Record({
-  StackName: R.String,
-  StackStatus: R.String,
-});
-
-export type T_Stack = R.Static<typeof G_Stack>;
-
-export type T_StackBatch = Array<T_Stack>;
+export type StackSummary = RequiredFields<
+  internalStackSummary,
+  "StackName" | "StackStatus"
+>;

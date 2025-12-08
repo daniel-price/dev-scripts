@@ -12,12 +12,6 @@ export async function awsJSON<T>(
   return result;
 }
 
-export async function aws(...args: string[]): Promise<string> {
-  const commandWithArgs = ["aws", ...args].join(" ");
-  const result = await execute(commandWithArgs);
-  return result;
-}
-
 export function queryArg(queries?: string[]): string {
   if (!queries?.length) {
     return "";

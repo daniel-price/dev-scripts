@@ -7,11 +7,11 @@ import {
   describeStack,
   describeStackEvents,
 } from "./cloudformation";
-import { T_Stack, T_StackBatch } from "./cloudformation-types";
+import { StackSummary } from "./cloudformation-types";
 
 export class Batches {
   private _stacksBatches: Array<StackBatch>;
-  constructor(stacksBatches: Array<T_StackBatch>) {
+  constructor(stacksBatches: Array<Array<StackSummary>>) {
     this._stacksBatches = stacksBatches.map((sb) => new StackBatch(sb));
   }
 
@@ -77,7 +77,7 @@ export class Batches {
 
 class StackBatch {
   private _stacks: Array<Stack>;
-  constructor(stacks: Array<T_Stack>) {
+  constructor(stacks: Array<StackSummary>) {
     this._stacks = stacks.map(
       (s) => new Stack(s.StackName, s.StackStatus as T_StackStatus),
     );

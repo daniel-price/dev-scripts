@@ -8,59 +8,36 @@ import {
   DescribeStacksCommandOutput,
   DescribeStacksInput,
   ListStacksCommand,
-  StackSummary,
+  StackStatus,
 } from "@aws-sdk/client-cloudformation";
 import { Enum, Logger } from "@dev/util";
+import { ensureFieldsSet } from "@dev/util/src/types";
 import { isNonNil } from "@dev/util/src/util";
 
-import { awsJSON, getQueryArg, yieldAll } from "../../helpers/aws";
-import { G_Stack, T_Stack } from "./cloudformation-types";
+import { yieldAll } from "../../helpers/aws";
+import { StackSummary } from "./cloudformation-types";
 
 const cf = new CloudFormationClient();
 
-export enum E_STACK_STATUS {
-  CREATE_IN_PROGRESS = "CREATE_IN_PROGRESS",
-  CREATE_FAILED = "CREATE_FAILED",
-  CREATE_COMPLETE = "CREATE_COMPLETE",
-  ROLLBACK_IN_PROGRESS = "ROLLBACK_IN_PROGRESS",
-  ROLLBACK_FAILED = "ROLLBACK_FAILED",
-  ROLLBACK_COMPLETE = "ROLLBACK_COMPLETE",
-  DELETE_IN_PROGRESS = "DELETE_IN_PROGRESS",
-  DELETE_FAILED = "DELETE_FAILED",
-  DELETE_COMPLETE = "DELETE_COMPLETE",
-  UPDATE_IN_PROGRESS = "UPDATE_IN_PROGRESS",
-  UPDATE_COMPLETE_CLEANUP_IN_PROGRESS = "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS",
-  UPDATE_COMPLETE = "UPDATE_COMPLETE",
-  UPDATE_FAILED = "UPDATE_FAILED",
-  UPDATE_ROLLBACK_IN_PROGRESS = "UPDATE_ROLLBACK_IN_PROGRESS",
-  UPDATE_ROLLBACK_FAILED = "UPDATE_ROLLBACK_FAILED",
-  UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS = "UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS",
-  UPDATE_ROLLBACK_COMPLETE = "UPDATE_ROLLBACK_COMPLETE",
-  REVIEW_IN_PROGRESS = "REVIEW_IN_PROGRESS",
-  IMPORT_IN_PROGRESS = "IMPORT_IN_PROGRESS",
-  IMPORT_COMPLETE = "IMPORT_COMPLETE",
-  IMPORT_ROLLBACK_IN_PROGRESS = "IMPORT_ROLLBACK_IN_PROGRESS",
-  IMPORT_ROLLBACK_FAILED = "IMPORT_ROLLBACK_FAILED",
-  IMPORT_ROLLBACK_COMPLETE = "IMPORT_ROLLBACK_COMPLETE",
+export { StackStatus };
+
+function isValidStackStatus(value: string): value is StackStatus {
+  return value in StackStatus;
 }
 
-function isValidStackStatus(
-  value: string,
-): value is keyof typeof E_STACK_STATUS {
-  return value in E_STACK_STATUS || value === "DELETE_SKIPPED";
-}
+export const ALL_STACK_STATUSES = Enum.values(StackStatus);
 
 export const ACTIVE_STACK_STATUSES = [
-  E_STACK_STATUS.CREATE_COMPLETE,
-  E_STACK_STATUS.DELETE_FAILED,
-  E_STACK_STATUS.UPDATE_COMPLETE,
-  E_STACK_STATUS.UPDATE_ROLLBACK_COMPLETE,
-  E_STACK_STATUS.ROLLBACK_COMPLETE,
+  StackStatus.CREATE_COMPLETE,
+  StackStatus.DELETE_FAILED,
+  StackStatus.UPDATE_COMPLETE,
+  StackStatus.UPDATE_ROLLBACK_COMPLETE,
+  StackStatus.ROLLBACK_COMPLETE,
 ];
 
 export async function describeStackResources(
   stackName: string,
-  stackStatuses: E_STACK_STATUS[],
+  stackStatuses: StackStatus[],
   resourceType?: string,
 ): Promise<string[]> {
   const params: DescribeStackResourcesCommandInput = { StackName: stackName };
@@ -75,7 +52,7 @@ export async function describeStackResources(
       if (!sr.ResourceStatus) throw new Error("ResourceStatus is not defined");
       if (!isValidStackStatus(sr.ResourceStatus))
         throw new Error(`Resource status ${sr.ResourceStatus} is not valid!`);
-      return stackStatuses.includes(E_STACK_STATUS[sr.ResourceStatus]);
+      return stackStatuses.includes(StackStatus[sr.ResourceStatus]);
     });
 
     return filtered
@@ -90,36 +67,23 @@ export async function describeStackResources(
   }
 }
 
-function getStatusFilterArg(statusFilter?: string[]): string {
-  if (!statusFilter) return "";
-  return `--stack-status-filter ${statusFilter.join(" ")}`;
-}
-
-export const ALL_STACK_STATUSES = Array.from(
-  Enum.toMap(E_STACK_STATUS).values(),
-);
-
-export async function getStackNamesAndStatuses(
-  queries?: string[],
-  statusFilter?: string[],
-): Promise<T_Stack[]> {
-  const queryArg = getQueryArg(queries, "StackSummaries", [
-    "StackName",
-    "StackStatus",
-  ]);
-  const statusFilterArg = getStatusFilterArg(statusFilter);
-
-  const stacks = await awsJSON(
-    G_Stack,
-    "cloudformation",
-    "list-stacks",
-    queryArg,
-    statusFilterArg,
-  );
-
-  Logger.info(stacks);
-
-  return stacks;
+export function listStacks(
+  statusFilter?: StackStatus[],
+): AsyncGenerator<StackSummary> {
+  return yieldAll(async (token?: string | undefined) => {
+    const response = await cf.send(
+      new ListStacksCommand({
+        NextToken: token,
+        StackStatusFilter: statusFilter,
+      }),
+    );
+    const { StackSummaries, NextToken } = response;
+    if (!StackSummaries) throw new Error("StackSummaries is not defined");
+    const results = StackSummaries.map((s) =>
+      ensureFieldsSet(s, ["StackName", "StackStatus"]),
+    );
+    return { results, nextToken: NextToken };
+  });
 }
 
 export async function deleteStack(stackName: string): Promise<void> {
@@ -141,22 +105,4 @@ export async function describeStack(
   const params: DescribeStacksInput = { StackName: stackName };
   const res = await cf.send(new DescribeStacksCommand(params));
   return res;
-}
-
-export function listStacks(
-  stackStatusFilter: E_STACK_STATUS[],
-): AsyncGenerator<StackSummary> {
-  return yieldAll(async (token?: string | undefined) => {
-    const result = await cf.send(
-      new ListStacksCommand({
-        NextToken: token,
-        StackStatusFilter: stackStatusFilter,
-      }),
-    );
-    return { results: result.StackSummaries, nextToken: result.NextToken };
-  });
-}
-
-export function listActiveStacks(): AsyncGenerator<StackSummary> {
-  return listStacks(ACTIVE_STACK_STATUSES);
 }

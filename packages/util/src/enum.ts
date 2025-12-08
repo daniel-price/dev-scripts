@@ -15,6 +15,14 @@ export function toMap(
   return map;
 }
 
+export function values<T extends { [k: number]: string }>(
+  enumObject: T,
+): T[keyof T][] {
+  return Object.keys(enumObject)
+    .filter((k) => isNaN(Number(k)))
+    .map((k) => enumObject[k as keyof T]);
+}
+
 export function isEnumValue<T extends { [k: number]: string }>(
   something: unknown,
   enumObject: T,
