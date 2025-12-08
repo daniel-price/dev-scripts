@@ -13,7 +13,7 @@ import {
 import { Enum, Logger } from "@dev/util";
 import { isNonNil } from "@dev/util/src/util";
 
-import { aws, awsJSON, getQueryArg, yieldAll } from "../../helpers/aws";
+import { awsJSON, getQueryArg, yieldAll } from "../../helpers/aws";
 import { G_Stack, T_Stack } from "./cloudformation-types";
 
 const cf = new CloudFormationClient();
@@ -123,7 +123,7 @@ export async function getStackNamesAndStatuses(
 }
 
 export async function deleteStack(stackName: string): Promise<void> {
-  await aws("cloudformation", "delete-stack", "--stack-name", stackName);
+  await cf.send(new DescribeStacksCommand({ StackName: stackName }));
 }
 
 export async function describeStackEvents(

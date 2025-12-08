@@ -41,7 +41,7 @@ Demonstrated strong technical leadership and ownership across infrastructure, se
 ## Quality Assurance & Testing
 
 **Test Strategy & Reliability**
-- Drove initiatives to increase e2e and integration test reliability across multiple PRs:
+- Drove initiatives to increase e2e and integration test reliability across multiple features:
   - [#8166](https://github.com/dentally/dentr/pull/8166)
   - [#8131](https://github.com/dentally/dentr/pull/8131)
   - [#8606](https://github.com/dentally/dentr/pull/8606)
@@ -85,3 +85,148 @@ Demonstrated strong technical leadership and ownership across infrastructure, se
 **Team Impact**
 - Consistently unblocked team members and critical issues
 - Drove initiatives that improved overall team productivity and code quality
+
+
+
+
+
+
+
+
+QUESTIONS:
+
+---- 
+
+Technical Skills (Knowledge)
+This refers to the essential understanding and expertise required to perform your role effectively. It includes both theoretical knowledge and job-specific skills, encompassing the concepts, processes, systems, and tools critical to your role.
+
+This question helps you review your depth of knowledge related to your job, including whether you possess the technical or specialised understanding necessary for success in your role.
+
+6.How well do you understand the key concepts, processes, and tools required for your role?
+
+I possess advanced knowledge in most areas of my role. I shares insights with colleagues.
+
+SUPPORTING COMMENTS:
+
+Demonstrated deep technical expertise across multiple domains including infrastructure (AWS, CloudFormation, ECS, Lambda), security (OAuth, rate limiting, dependency management), performance optimization, and testing frameworks. Successfully expanded technical capabilities by learning Rails, showcasing adaptability and continuous learning. Served as New Relic champion for Maverick, sharing observability knowledge and best practices with the team. Troubleshot and resolved complex technical issues such as the sharp dependency problem that was blocking releases, demonstrating strong problem-solving skills and system understanding. Implemented sophisticated solutions including pipeline safety guardrails, GraphQL rate limiting, and automated security group management, showing comprehensive understanding of DevOps practices and security principles.
+
+---- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---- 
+
+Delivery Skills  (Application)
+This refers to how the you apply your knowledge in practical, real-world scenarios within your role. It involves translating theoretical understanding into effective actions, decision-making, and problem-solving.
+
+This question focuses on whether you can translate your knowledge into practical actions that drive positive outcomes and solve challenges within your day-to-day responsibilities.
+
+8.How effectively do you achieve results and solve problems in your role?
+
+I consistently exceed expected results. I anticipate potential challenges and adjust strategy accordingly.
+
+SUPPORTING COMMENTS:
+
+Consistently delivered measurable results that directly impacted business outcomes. Fixed a critical booking flow edge case that prevented deposits from being taken without appointment booking, directly protecting revenue. Significantly improved system performance by reducing graph query timeouts from >30s to <7s and optimizing JWT authorization lambda execution. Reduced infrastructure costs and complexity by migrating from Timestream to Mixpanel. Anticipated and prevented potential issues by implementing pipeline safety guardrails to prevent accidental deployments to wrong AWS accounts. Unblocked critical issues that were blocking releases, maintaining team momentum and delivery velocity. Drove initiatives that improved e2e test reliability across multiple features, resulting in more stable releases and reduced production incidents.
+
+---- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---- 
+Feedback, Communication & Collaboration (Interpersonal)
+This refers to how we interact and collaborate with others within the business. It encompasses the ability to communicate effectively, build strong relationships, and work cooperatively across teams and departments.
+
+This question enables you to review your ability to work with others, foster productive relationships, and communicate clearly. It looks at how well you collaborate with colleagues across teams or departments to achieve business goals.
+
+10.How well do you collaborate with colleagues, communicate effectively, build effective working relationships and contribute to building a high performing working environment?
+
+I actively foster teamwork, listen to others' perspectives, and resolve conflicts effectively. I build strong relationships that support cross-functional success.
+
+SUPPORTING COMMENTS:
+
+Actively collaborated with team members to drive improvements, including working with Pam to optimize e2e test coverage while strategically reducing test count through regular analysis. Served as New Relic champion, sharing knowledge and insights with colleagues to improve observability practices across the team. Improved documentation with better linking and organization, making information more accessible to the team. Guided the team toward better patterns by deprecating legacy services and cleaning up technical debt. Enhanced developer experience through automation and tooling improvements, such as automated PR title validation and security group management, directly supporting team productivity. Consistently unblocked team members and critical issues, fostering a collaborative environment where problems are solved efficiently.
+
+---- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+---- 
+Leadership (Commitment)
+This refers to the dedication and responsibility you demonstrate towards achieving both personal and organisational goals. It involves a strong sense of ownership, where one consistently follows through on responsibilities and strives to exceed expectations.
+
+This question allows you to review your level of commitment, including your reliability, follow-through, and motivation to consistently perform well and support team success.
+
+12.How well do you proactively contribute to your areas of influence in line with business needs?
+
+I consistently demonstrate commitment to goals. I readily adapt to changes and improvements.
+
+SUPPORTING COMMENTS:
+
+Demonstrated strong ownership and proactive leadership by driving and owning frequent release cycles, ensuring consistent delivery velocity. Took initiative to implement pipeline safety guardrails before incidents occurred, showing forward-thinking and risk mitigation. Drove multiple initiatives to increase e2e and integration test reliability across five different features, taking ownership of quality improvements. Proactively identified and addressed areas lacking test coverage through regular analysis. Implemented automated checking systems to prevent specific issues before they could impact the team. Enhanced developer workflow with automated security group updates, anticipating common pain points and solving them proactively. Deprecated legacy services and guided the team toward better patterns, taking ownership of technical debt reduction.
+
+---- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+---- 
+Strategic Impact (Organisational Impact)
+This refers to your understanding of the business' position within the market and your ability to align individual and team efforts with the broader organisational goals. It involves a deep awareness of the company’s competitive landscape, target audience, and customer needs, as well as how these factors drive business strategy and decisions. 
+
+*please note the "customer" is unique to the role - for Customer support this will be external clients and for roles such as HR this will be employees within the business.
+
+This question helps you review your awareness of the business context, customer needs, and how your individual efforts align with and support the larger company objectives.
+
+14.How well do you demonstrate you understand our business and it's strategic goals?
+
+I demonstrates a solid understanding of company goals and customer needs. I connect my work to organisational success and take steps to align my actions accordingly.
+
+SUPPORTING COMMENTS:
+
+Demonstrated clear understanding of business priorities by fixing a critical booking flow edge case that directly protected revenue, showing awareness of customer-facing impact and financial implications. Reduced infrastructure costs by migrating from Timestream to Mixpanel, aligning technical decisions with cost optimization goals. Improved system reliability and performance (reducing query timeouts from >30s to <7s), directly enhancing customer experience. Implemented security enhancements including rate limiting and improved OAuth logic, protecting both the business and customers from potential threats. Drove test reliability improvements that resulted in more stable releases, reducing production incidents that could impact customers. Enhanced developer experience and process improvements that accelerated team productivity, supporting the organization's goal of faster, more reliable delivery.
+
+---- 
