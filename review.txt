@@ -8,27 +8,27 @@ Demonstrated strong technical leadership and ownership across infrastructure, se
 ## Technical Excellence & Infrastructure
 
 **Infrastructure Optimization**
-- Reduced infrastructure costs and complexity by migrating from Timestream to Mixpanel for dashboards ([#8451](https://github.com/dentally/dentr/pull/8451))
-- Troubleshot and resolved complex sharp dependency issue that was causing releases to fail ([#7909](https://github.com/dentally/dentr/pull/7909))
-- Removed unused packages to reduce technical debt ([#8026](https://github.com/dentally/dentr/pull/8026))
+- Reduced infrastructure costs and complexity by migrating from Timestream to Mixpanel for dashboards (https://github.com/dentally/dentr/pull/8451)
+- Troubleshot and resolved complex sharp dependency issue that was causing releases to fail (https://github.com/dentally/dentr/pull/7909)
+- Removed unused packages to reduce technical debt (https://github.com/dentally/dentr/pull/8026)
 
 **Performance Improvements**
-- Significantly improved graph query performance, reducing timeout from >30s to <7s ([#8608](https://github.com/dentally/dentr/pull/8608))
-- Optimized JWT authorization lambda for faster execution ([#8119](https://github.com/dentally/dentr/pull/8119))
-- Added operation name to manage app query logging for better observability ([#8072](https://github.com/dentally/dentr/pull/8072))
+- Significantly improved graph query performance, reducing timeout from >30s to <7s (https://github.com/dentally/dentr/pull/8608)
+- Optimized JWT authorization lambda for faster execution (https://github.com/dentally/dentr/pull/8119)
+- Added operation name to manage app query logging for better observability (https://github.com/dentally/dentr/pull/8072)
 
 ---
 
 ## Security & Reliability
 
 **Security Enhancements**
-- Enhanced dependency management security by migrating from npm to pnpm ([#8610](https://github.com/dentally/dentr/pull/8610))
-- Locked packages to specific versions to prevent supply chain vulnerabilities ([#8607](https://github.com/dentally/dentr/pull/8607))
-- Implemented generic rate limiting for GraphQL queries to protect against abuse ([#7550](https://github.com/dentally/dentr/pull/7550))
-- Improved OAuth refresh logic for more secure authentication flows ([#8389](https://github.com/dentally/dentr/pull/8389))
+- Enhanced dependency management security by migrating from npm to pnpm (https://github.com/dentally/dentr/pull/8610)
+- Locked packages to specific versions to prevent supply chain vulnerabilities (https://github.com/dentally/dentr/pull/8607)
+- Implemented generic rate limiting for GraphQL queries to protect against abuse (https://github.com/dentally/dentr/pull/7550)
+- Improved OAuth refresh logic for more secure authentication flows (https://github.com/dentally/dentr/pull/8389)
 
 **Production Issue Resolution**
-- Fixed critical booking flow edge case ([#7644](https://github.com/dentally/dentr/pull/7644)) that prevented deposits from being taken without appointment booking, directly protecting revenue
+- Fixed critical booking flow edge case that prevented deposits from being taken without appointment booking, directly protecting revenue (https://github.com/dentally/dentr/pull/7644)
 - Debugged and resolved production errors, ensuring system stability
 
 ---
@@ -37,34 +37,34 @@ Demonstrated strong technical leadership and ownership across infrastructure, se
 
 **Test Strategy & Reliability**
 - Drove initiatives to increase e2e and integration test reliability across multiple features:
-  - [#8166](https://github.com/dentally/dentr/pull/8166)
-  - [#8131](https://github.com/dentally/dentr/pull/8131)
-  - [#8606](https://github.com/dentally/dentr/pull/8606)
-  - [#8085](https://github.com/dentally/dentr/pull/8085)
-  - [#8287](https://github.com/dentally/dentr/pull/8287)
+  - https://github.com/dentally/dentr/pull/8166
+  - https://github.com/dentally/dentr/pull/8131
+  - https://github.com/dentally/dentr/pull/8606
+  - https://github.com/dentally/dentr/pull/8085
+  - https://github.com/dentally/dentr/pull/8287
 
 **Test Coverage Optimization**
 - Collaborated with Pam to drive e2e test coverage improvements while strategically reducing test count through regular analysis
 - Identified and addressed areas lacking adequate test coverage
 
 **Feature Testing**
-- Implemented comprehensive e2e tests for kiosk functionality ([#8294](https://github.com/dentally/dentr/pull/8294), [#8425](https://github.com/dentally/dentr/pull/8425))
-- Added e2e test for task reminder sending functionality ([#7696](https://github.com/dentally/dentr/pull/7696))
-- Added e2e test for held appointment functionality ([#7657](https://github.com/dentally/dentr/pull/7657))
-- Added e2e test for multiple patient short codes on same device ([#8070](https://github.com/dentally/dentr/pull/8070))
+- Implemented comprehensive e2e tests for kiosk functionality (https://github.com/dentally/dentr/pull/8294, https://github.com/dentally/dentr/pull/8425)
+- Added e2e test for task reminder sending functionality (https://github.com/dentally/dentr/pull/7696)
+- Added e2e test for held appointment functionality (https://github.com/dentally/dentr/pull/7657)
+- Added e2e test for multiple patient short codes on same device (https://github.com/dentally/dentr/pull/8070)
 
 ---
 
 ## Developer Experience & Process Improvement
 
 **Code Quality & Standards**
-- Ensured consistent formatting across entire codebase ([#7680](https://github.com/dentally/dentr/pull/7680))
-- Deprecated legacy services, cleaning up technical debt and guiding team toward better patterns ([#7689](https://github.com/dentally/dentr/pull/7689))
+- Ensured consistent formatting across entire codebase (https://github.com/dentally/dentr/pull/7680)
+- Deprecated legacy services, cleaning up technical debt and guiding team toward better patterns (https://github.com/dentally/dentr/pull/7689)
 
 **Automation & Tooling**
-- Implemented automated checking to prevent specific issues ([#7958](https://github.com/dentally/dentr/pull/7958), [#8090](https://github.com/dentally/dentr/pull/8090))
-- Automated PR title validation to ensure all PRs are properly linked to tickets for better project tracking ([#7667](https://github.com/dentally/dentr/pull/7667))
-- Enhanced developer workflow by automatically updating security groups to include IP when SSH times out ([#7940](https://github.com/dentally/dentr/pull/7940))
+- Implemented automated checking to prevent specific issues (https://github.com/dentally/dentr/pull/7958, https://github.com/dentally/dentr/pull/8090)
+- Automated PR title validation to ensure all PRs are properly linked to tickets for better project tracking (https://github.com/dentally/dentr/pull/7667)
+- Enhanced developer workflow by automatically updating security groups to include IP when SSH times out (https://github.com/dentally/dentr/pull/7940)
 
 **Documentation**
 - Improved documentation with better linking and organization
@@ -160,21 +160,31 @@ SUPPORTING COMMENTS:
 
 
 
+Reactive
 - Resolved multiple critical issues that were blocking releases, maintaining team momentum and ensuring consistent delivery velocity
-- Troubleshot and resolved complex sharp dependency issue that was blocking releases ([#7909](https://github.com/dentally/dentr/pull/7909)), demonstrating strong problem-solving skills and comprehensive system understanding
-- Implemented automated checking mechanisms to prevent specific issues ([#7958](https://github.com/dentally/dentr/pull/7958), [#8090](https://github.com/dentally/dentr/pull/8090)) before they could impact the team
-- Drove initiative to increase end-to-end and integration test reliability across five different features ([#8166](https://github.com/dentally/dentr/pull/8166), [#8131](https://github.com/dentally/dentr/pull/8131), [#8606](https://github.com/dentally/dentr/pull/8606), [#8085](https://github.com/dentally/dentr/pull/8085), [#8287](https://github.com/dentally/dentr/pull/8287)), taking ownership of quality improvements
-- Increased end-to-end test coverage and reliability across multiple features ([#8166](https://github.com/dentally/dentr/pull/8166), [#8131](https://github.com/dentally/dentr/pull/8131), [#8606](https://github.com/dentally/dentr/pull/8606), [#8085](https://github.com/dentally/dentr/pull/8085), [#8287](https://github.com/dentally/dentr/pull/8287)), resulting in more stable releases and reduced production incidents
-- Implemented pipeline safety guardrails preventing accidental deployments to wrong AWS accounts ([#8193](https://github.com/dentally/dentr/pull/8193)), proactively mitigating deployment risks
-- Implemented generic rate limiting for GraphQL queries to protect against abuse ([#7550](https://github.com/dentally/dentr/pull/7550))
-- Enhanced dependency management security by migrating from npm to pnpm ([#8610](https://github.com/dentally/dentr/pull/8610))
-- Locked packages to specific versions to prevent supply chain vulnerabilities ([#8607](https://github.com/dentally/dentr/pull/8607))
-- Enhanced developer workflow with automated security group updates ([#7940](https://github.com/dentally/dentr/pull/7940)), proactively addressing common pain points
-- Deprecated legacy services, cleaning up technical debt and guiding team toward better patterns ([#7689](https://github.com/dentally/dentr/pull/7689)), taking ownership of technical debt reduction
-- Automated PR title validation to ensure all PRs are properly linked to tickets for better project tracking ([#7667](https://github.com/dentally/dentr/pull/7667))
-- Significantly improved graph query performance, reducing timeout from >30s to <7s ([#8608](https://github.com/dentally/dentr/pull/8608))
-- Optimized JWT authorization lambda for faster execution ([#8119](https://github.com/dentally/dentr/pull/8119))
-- Reduced infrastructure costs and complexity by migrating from Timestream to Mixpanel for dashboards ([#8451](https://github.com/dentally/dentr/pull/8451))
+- Troubleshot and resolved complex sharp dependency issue that was blocking releases, demonstrating strong problem-solving skills and comprehensive system understanding (https://github.com/dentally/dentr/pull/7909)
+
+Quality
+- Implemented automated checking mechanisms to prevent specific issues before they could impact the team (https://github.com/dentally/dentr/pull/7958, https://github.com/dentally/dentr/pull/8090)
+- Drove initiative to increase end-to-end and integration test reliability across five different features, taking ownership of quality improvements (https://github.com/dentally/dentr/pull/8166, https://github.com/dentally/dentr/pull/8131, https://github.com/dentally/dentr/pull/8606, https://github.com/dentally/dentr/pull/8085, https://github.com/dentally/dentr/pull/8287)
+- Increased end-to-end test coverage and reliability across multiple features, resulting in more stable releases and reduced production incidents (https://github.com/dentally/dentr/pull/8166, https://github.com/dentally/dentr/pull/8131, https://github.com/dentally/dentr/pull/8606, https://github.com/dentally/dentr/pull/8085, https://github.com/dentally/dentr/pull/8287)
+
+DevOps and Security
+- Implemented pipeline safety guardrails preventing accidental deployments to wrong AWS accounts, proactively mitigating deployment risks (https://github.com/dentally/dentr/pull/8193)
+- Implemented generic rate limiting for GraphQL queries to protect against abuse (https://github.com/dentally/dentr/pull/7550)
+- Enhanced dependency management security by migrating from npm to pnpm (https://github.com/dentally/dentr/pull/8610)
+- Locked packages to specific versions to prevent supply chain vulnerabilities (https://github.com/dentally/dentr/pull/8607)
+
+DevEx
+- Enhanced developer workflow with automated security group updates, proactively addressing common pain points (https://github.com/dentally/dentr/pull/7940)
+- Deprecated legacy services, cleaning up technical debt and guiding team toward better patterns, taking ownership of technical debt reduction (https://github.com/dentally/dentr/pull/7689)
+- Automated PR title validation to ensure all PRs are properly linked to tickets for better project tracking (https://github.com/dentally/dentr/pull/7667)
+
+
+Performance and cost saving
+- Significantly improved graph query performance, reducing timeout from >30s to <7s (https://github.com/dentally/dentr/pull/8608)
+- Optimized JWT authorization lambda for faster execution (https://github.com/dentally/dentr/pull/8119)
+- Reduced infrastructure costs and complexity by migrating from Timestream to Mixpanel for dashboards (https://github.com/dentally/dentr/pull/8451)
 
 ---- 
 
@@ -204,7 +214,7 @@ I actively foster teamwork, listen to others' perspectives, and resolve conflict
 
 SUPPORTING COMMENTS:
 
-- Collaborated with QA team to optimize end-to-end test coverage while strategically reducing test count through regular analysis, identifying and addressing areas lacking adequate test coverage
+- Collaborated with QE to improve end-to-end test coverage while strategically reducing test count through regular analysis, identifying and addressing areas lacking adequate test coverage
 - Served as New Relic champion for Maverick, sharing knowledge and insights with colleagues to improve observability practices across the team
 - Enhanced documentation quality and organization, making information more accessible to the team
 
@@ -234,8 +244,8 @@ I consistently demonstrate commitment to goals. I readily adapt to changes and i
 
 SUPPORTING COMMENTS:
 
-- Drove frequent releases, ensuring consistent delivery velocity, including comprehensive testing and resolution of issues blocking releases
-- Proactively collaborated with Quality Engineering team to identify and address areas lacking test coverage through regular analysis
+- Drove frequent releases, ensuring consistent delivery velocity, including testing and resolution of issues blocking releases
+- Proactively collaborated with QE to identify and address areas lacking test coverage through regular analysis
 
 
 ---- 
@@ -264,6 +274,6 @@ I demonstrates a solid understanding of company goals and customer needs. I conn
 SUPPORTING COMMENTS:
 
 - Developed deep understanding of customer needs (practice staff and patients) through 4+ years of working on Portal, strengthened by multiple practice visits and patient interviews
-- Demonstrated understanding of the critical importance of system reliability through improvements to end-to-end testing, observability, and monitoring infrastructure, as evidenced in previous responses
+- Demonstrated understanding of the critical importance of system reliability through improvements to end-to-end testing, observability, and monitoring, as evidenced in previous responses
 
 ---- 
