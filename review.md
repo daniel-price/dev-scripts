@@ -6,11 +6,17 @@ Picked up new language/technology (Rails)
 
 Unblocking critical issues blocking release.
 
-DevOps:
+Generally driving and owning frequent releasing
 
+DevOps and security:
+
+- Locked packages to specific versions https://github.com/dentally/dentr/pull/8607
 - Package manager migration from npm to pnpm to improve dependency management security - https://github.com/dentally/dentr/pull/8610
 - Implemented pipeline safety guardrails preventing accidental deployments to wrong AWS accounts - https://github.com/dentally/dentr/pull/8193
--
+- Troubleshot and implemented solution for complex sharp issue causing releases to fail -  https://github.com/dentally/dentr/pull/7909
+- Added operation name to manage app query logging - https://github.com/dentally/dentr/pull/8072
+- Removed unused packages https://github.com/dentally/dentr/pull/8026
+- Sped up jwt authorization lambda https://github.com/dentally/dentr/pull/8119
 
 Testing & Quality Assurance:
 
@@ -40,6 +46,10 @@ Debugging and fixing produciton errors:
 
 - significantly sped up timing out graph query (>30s to <7s) https://github.com/dentally/dentr/pull/8608
   • **Fixed critical booking flow edge case** ([#7644](https://github.com/dentally/dentr/pull/7644)) preventing deposits from being taken without appointment booking - directly protecting revenue
+  
+Security
+  - Added generic rate limiting for graphql queries https://github.com/dentally/dentr/pull/7550
+  - Improved Oauth refresh logic https://github.com/dentally/dentr/pull/8389
 
 Reduced infra cost and complexity:
 
