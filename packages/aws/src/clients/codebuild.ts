@@ -1,18 +1,17 @@
+import { CodeBuild, ListBuildsInput } from "@aws-sdk/client-codebuild";
 import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
-import { CodeBuild } from "aws-sdk";
-import { ListBuildsInput } from "aws-sdk/clients/codebuild";
 
 import { yieldAll } from "../helpers/aws";
 
 const codebuild = new CodeBuild();
 
-export function listProjects(): AsyncGenerator<CodeBuild.ProjectName> {
+export function listProjects(): AsyncGenerator<string> {
   return yieldAll(async (token: string | undefined) => {
     const params: ListBuildsInput = {
       nextToken: token,
     };
-    const result = await codebuild.listProjects(params).promise();
+    const result = await codebuild.listProjects(params);
     Logger.debug("ListPipelines result:", result);
     return { results: result.projects, nextToken: result.nextToken };
   });
@@ -26,7 +25,7 @@ export async function deleteProjects(
       "delete CodeBuild projects",
       buildIdBatch,
       async (buildId) => {
-        await codebuild.deleteProject({ name: buildId }).promise();
+        await codebuild.deleteProject({ name: buildId });
       },
     );
   }
