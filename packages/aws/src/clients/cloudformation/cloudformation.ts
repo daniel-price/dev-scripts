@@ -1,5 +1,6 @@
 import {
   CloudFormationClient,
+  DeleteStackCommand,
   DescribeStackEventsCommand,
   DescribeStackEventsOutput,
   DescribeStackResourcesCommand,
@@ -87,7 +88,7 @@ export function listStacks(
 }
 
 export async function deleteStack(stackName: string): Promise<void> {
-  await cf.send(new DescribeStacksCommand({ StackName: stackName }));
+  await cf.send(new DeleteStackCommand({ StackName: stackName }));
 }
 
 export async function describeStackEvents(

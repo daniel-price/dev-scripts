@@ -47,6 +47,8 @@ export class Batches {
             case STATUS.FAILED:
               logText += ` ✕ ${stack.StackName}: ${stack.StackStatus}\n`;
               break;
+            default:
+              logText += ` ? ${stack.StackName}: ${stack.StackStatus}\n`;
           }
         }
       }
