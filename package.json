@@ -13,7 +13,7 @@
     "check-types": "tsc --noEmit",
     "clean": "rm -rf node_modules bun.lockb",
     "format": "sort-package-json -q 'package.json' 'packages/*/package.json' && prettier --write . --log-level silent",
-    "lint": "eslint --ext js,ts,tsx . --fix",
+    "lint": "eslint --ext js,ts,tsx . --fix --max-warnings=0",
     "prepare": "husky install",
     "test": "bun test"
   },
