@@ -12,7 +12,9 @@ import {
 import { ChangeItems, Logger, Util } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
-const s3 = new S3Client();
+import { awsProxy } from "../helpers/awsProxy";
+
+const s3 = awsProxy(new S3Client());
 
 type Options = {
   skipPrompt: boolean;

@@ -5,8 +5,9 @@ import {
 } from "@aws-sdk/client-api-gateway";
 
 import { yieldAll } from "../helpers/aws";
+import { awsProxy } from "../helpers/awsProxy";
 
-const client = new APIGatewayClient({});
+const client = awsProxy(new APIGatewayClient());
 
 export function getCustomDomainNames(): AsyncGenerator<DomainName> {
   return yieldAll(async (nextToken?: string) => {

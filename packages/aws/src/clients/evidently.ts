@@ -5,7 +5,9 @@ import {
   ListProjectsCommand,
 } from "@aws-sdk/client-evidently";
 
-const evidently = new Evidently();
+import { awsProxy } from "../helpers/awsProxy";
+
+const evidently = awsProxy(new Evidently());
 
 export async function listProjects(nextToken?: string): Promise<Array<string>> {
   const result = await evidently.send(new ListProjectsCommand({ nextToken }));

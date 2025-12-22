@@ -1,8 +1,10 @@
 import { CodePipeline, PipelineSummary } from "@aws-sdk/client-codepipeline";
-import { Logger, retry } from "@dev/util";
+import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
-const codepipeline = new CodePipeline();
+import { awsProxy } from "../helpers/awsProxy";
+
+const codepipeline = awsProxy(new CodePipeline());
 
 export async function listPipelines(): Promise<PipelineSummary[]> {
   const result = await codepipeline.listPipelines();
@@ -11,15 +13,10 @@ export async function listPipelines(): Promise<PipelineSummary[]> {
 }
 
 async function deletePipeline(pipeline: PipelineSummary): Promise<void> {
-  Logger.debug(`Deleting pipeline: ${pipeline.name}`);
-  await retry(async () => {
-    if (!pipeline.name) {
-      throw new Error("Pipeline name is undefined", { cause: pipeline });
-    }
-    const res = await codepipeline.deletePipeline({ name: pipeline.name });
-    return res;
-  });
-  Logger.debug(`Deleted pipeline: ${pipeline.name}`);
+  if (!pipeline.name) {
+    throw new Error("Pipeline name is undefined", { cause: pipeline });
+  }
+  await codepipeline.deletePipeline({ name: pipeline.name });
 }
 
 export async function deletePipelines(

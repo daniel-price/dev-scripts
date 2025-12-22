@@ -40,7 +40,7 @@ export function error(context: string, e?: unknown): void {
   }
 
   if (typeof e === "object") {
-    console.error(context, ...mapArgs([e])); // eslint-disable-line no-console
+    console.error(context, e); // eslint-disable-line no-console
     return;
   }
 

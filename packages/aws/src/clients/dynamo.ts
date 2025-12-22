@@ -19,12 +19,13 @@ import {
   UpdateItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Async, Logger, R, retry } from "@dev/util";
+import { Async, Logger, R } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
+import { awsProxy } from "../helpers/awsProxy";
 
-const ddb = new DynamoDBClient();
+const ddb = awsProxy(new DynamoDBClient());
 
 export enum Filter {
   BEGINS_WITH = "begins_with",
@@ -162,17 +163,14 @@ export async function deleteItems(
     }));
     if (!deleteRequests.length) continue;
 
-    await retry(() =>
-      ddb.send(
-        new BatchWriteItemCommand({
-          RequestItems: {
-            [tableName]: deleteRequests,
-          },
-        }),
-      ),
-    );
-
-    totalCount += batch.length;
+    await ddb.send(
+      new BatchWriteItemCommand({
+        RequestItems: {
+          [tableName]: deleteRequests,
+        },
+      }),
+    ),
+      (totalCount += batch.length);
     Logger.info(
       `Deleted batch of ${
         batch.length

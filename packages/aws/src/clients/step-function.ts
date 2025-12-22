@@ -1,7 +1,9 @@
 import { DescribeExportCommandOutput } from "@aws-sdk/client-dynamodb";
 import { DescribeExecutionCommand, SFNClient } from "@aws-sdk/client-sfn";
 
-const sfn = new SFNClient();
+import { awsProxy } from "../helpers/awsProxy";
+
+const sfn = awsProxy(new SFNClient());
 
 export async function describeExecution(
   executionArn: string,

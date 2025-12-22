@@ -16,10 +16,10 @@ import { ensureFieldsSet } from "@dev/util/src/types";
 import { isNonNil } from "@dev/util/src/util";
 
 import { yieldAll } from "../../helpers/aws";
-import { loggingProxy } from "../../helpers/loggingProxy";
+import { awsProxy } from "../../helpers/awsProxy";
 import { StackSummary } from "./cloudformation-types";
 
-const cf = loggingProxy(new CloudFormationClient());
+const cf = awsProxy(new CloudFormationClient());
 
 export { StackStatus };
 

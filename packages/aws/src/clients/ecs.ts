@@ -11,7 +11,9 @@ import {
   Tag,
 } from "@aws-sdk/client-ecs";
 
-const ecs = new ECSClient();
+import { awsProxy } from "../helpers/awsProxy";
+
+const ecs = awsProxy(new ECSClient());
 
 export async function listTasks(clusterArn: string): Promise<string[]> {
   const res = await ecs.send(

@@ -9,7 +9,9 @@ import {
   Vpc,
 } from "@aws-sdk/client-ec2";
 
-const ec2 = new EC2Client();
+import { awsProxy } from "../helpers/awsProxy";
+
+const ec2 = awsProxy(new EC2Client());
 
 export async function describeVpcs(vpcName: string): Promise<Vpc[]> {
   const res: DescribeVpcsCommandOutput = await ec2.send(

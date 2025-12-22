@@ -15,8 +15,9 @@ import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
 import { yieldAll } from "../helpers/aws";
+import { awsProxy } from "../helpers/awsProxy";
 
-const lambda = new LambdaClient();
+const lambda = awsProxy(new LambdaClient());
 
 export function listLambdaFunctions(): AsyncGenerator<FunctionConfiguration> {
   return yieldAll(async (nextToken?: string) => {

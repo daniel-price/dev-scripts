@@ -1,7 +1,9 @@
 import { DescribeExportCommandOutput } from "@aws-sdk/client-dynamodb";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 
-const client = new STSClient();
+import { awsProxy } from "../helpers/awsProxy";
+
+const client = awsProxy(new STSClient());
 
 export async function assumeRole(
   roleArn: string,

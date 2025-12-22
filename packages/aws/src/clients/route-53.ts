@@ -10,7 +10,9 @@ import {
 } from "@aws-sdk/client-route-53";
 import { Logger } from "@dev/util";
 
-const route53 = new Route53Client();
+import { awsProxy } from "../helpers/awsProxy";
+
+const route53 = awsProxy(new Route53Client());
 
 export async function deleteRecordSet(
   hostedZoneId: string,

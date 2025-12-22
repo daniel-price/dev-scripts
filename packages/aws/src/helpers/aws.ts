@@ -1,5 +1,3 @@
-import { retry } from "@dev/util";
-
 export async function* yieldAll<Result, Token>(
   fn: (
     token?: Token,
@@ -8,7 +6,7 @@ export async function* yieldAll<Result, Token>(
 ): AsyncGenerator<Result> {
   let nextToken = token;
   do {
-    const res = await retry(() => fn(nextToken));
+    const res = await fn(nextToken);
     nextToken = res.nextToken;
     const { results = [] } = res;
 

@@ -4,7 +4,9 @@ import {
 } from "@aws-sdk/client-secrets-manager";
 import { Json, R } from "@dev/util";
 
-const sm = new SecretsManagerClient();
+import { awsProxy } from "../helpers/awsProxy";
+
+const sm = awsProxy(new SecretsManagerClient());
 
 export async function getStringSecret(secretId: string): Promise<string> {
   try {

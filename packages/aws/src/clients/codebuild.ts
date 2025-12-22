@@ -3,8 +3,9 @@ import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
+import { awsProxy } from "../helpers/awsProxy";
 
-const codebuild = new CodeBuild();
+const codebuild = awsProxy(new CodeBuild());
 
 export function listProjects(): AsyncGenerator<string> {
   return yieldAll(async (token: string | undefined) => {

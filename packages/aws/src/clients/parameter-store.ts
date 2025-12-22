@@ -1,4 +1,6 @@
 import {
+  DescribeParametersCommand,
+  DescribeParametersCommandInput,
   GetParameterCommand,
   Parameter,
   PutParameterCommand,
@@ -7,25 +9,30 @@ import {
 import { Json, Logger, R } from "@dev/util";
 import { isNonNil } from "@dev/util/src/util";
 
-const ssm = new SSM({ region: "us-east-1" });
+import { yieldAll } from "../helpers/aws";
+import { awsProxy } from "../helpers/awsProxy";
 
-export async function listParameters(): Promise<string[]> {
-  const all_parameters: string[] = [];
-  async function getBatch(nextToken?: string): Promise<void> {
-    const response = await ssm.describeParameters({ NextToken: nextToken });
+const ssm = awsProxy(new SSM({ region: "us-east-1" }));
+
+export function listParameters(
+  describeParametersCommandInput: Partial<DescribeParametersCommandInput> = {},
+): AsyncGenerator<string> {
+  return yieldAll(async (nextToken?: string) => {
+    const response = await ssm.send(
+      new DescribeParametersCommand({
+        ...describeParametersCommandInput,
+        NextToken: nextToken,
+        //only those that start with /param/
+      }),
+    );
     if (!response.Parameters) {
       throw new Error("Unable to fetch parameters");
     }
-    all_parameters.push(
-      ...response.Parameters.map((param) => param.Name).filter(isNonNil),
-    );
-    if (response.NextToken) {
-      await getBatch(response.NextToken);
-    }
-  }
-  await getBatch();
-
-  return all_parameters;
+    return {
+      results: response.Parameters.map((param) => param.Name).filter(isNonNil),
+      nextToken: response.NextToken,
+    };
+  });
 }
 
 export async function getJSONParameterValue<T>(
