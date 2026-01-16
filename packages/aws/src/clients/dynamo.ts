@@ -98,18 +98,23 @@ export function scan<T>(
   };
 
   return yieldAll(async (token?: Record<string, AttributeValue>) => {
-    const response = await ddb.send(
-      new ScanCommand({ ...params, ExclusiveStartKey: token, Limit: 1000 }),
-    );
+    try {
+      const response = await ddb.send(
+        new ScanCommand({ ...params, ExclusiveStartKey: token, Limit: 1000 }),
+      );
 
-    if (!response.Items) throw new Error("No items on scan result");
+      if (!response.Items) throw new Error("No items on scan result");
 
-    const unmarshalledItems = response.Items.map((i) => unmarshall(i)) as T[];
+      const unmarshalledItems = response.Items.map((i) => unmarshall(i)) as T[];
 
-    const results = R.assertType(R.Array(runtype), unmarshalledItems);
+      const results = R.assertType(R.Array(runtype), unmarshalledItems);
 
-    const nextToken = response.LastEvaluatedKey;
-    return { results, nextToken };
+      const nextToken = response.LastEvaluatedKey;
+      return { results, nextToken };
+    } catch (error) {
+      Logger.error("Error during scan operation", error);
+      throw error;
+    }
   });
 }
 

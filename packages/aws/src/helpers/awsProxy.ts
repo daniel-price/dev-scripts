@@ -10,14 +10,30 @@ export function awsProxy<T extends object>(obj: T): T {
       if (prop === "send" && typeof value === "function") {
         return new Proxy(value, {
           // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-          apply(targetMethod, thisArg, argArray) {
+          async apply(targetMethod, thisArg, argArray) {
             const command = argArray[0].constructor.name;
             const params = argArray[0].input;
             Logger.debug(`${target.constructor.name}.send called`, {
               command,
               params,
             });
-            return retry(() => Reflect.apply(targetMethod, thisArg, argArray));
+            const result = await retry(() => {
+              try {
+                Logger.debug(`Executing AWS command`, { command, params });
+                const res = Reflect.apply(targetMethod, thisArg, argArray);
+                Logger.debug(`AWS command executed`, { command, params });
+                return res;
+              } catch (e) {
+                Logger.error("Error executing AWS command", e);
+                throw e;
+              }
+            });
+            Logger.debug(`${target.constructor.name}.send completed`, {
+              command,
+              params,
+              result,
+            });
+            return result;
           },
         });
       }

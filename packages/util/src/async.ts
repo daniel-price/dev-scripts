@@ -41,3 +41,13 @@ export async function log<T>(asyncGenerator: AsyncGenerator<T>): Promise<void> {
     Logger.info(item);
   }
 }
+
+export async function toArray<T>(
+  asyncGenerator: AsyncGenerator<T>,
+): Promise<T[]> {
+  const result: T[] = [];
+  for await (const item of asyncGenerator) {
+    result.push(item);
+  }
+  return result;
+}

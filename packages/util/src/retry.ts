@@ -1,3 +1,4 @@
+import * as Logger from "./logger";
 import { sleep } from "./util";
 
 const defaultRetryPredicate: (err: unknown) => boolean = (_: unknown) => true;
@@ -20,10 +21,16 @@ export async function retry<T>(
   try {
     return await fn(retriesLeft);
   } catch (err) {
-    if (retriesLeft <= 0 || !retryPredicate(err)) {
+    const shouldRetry = retriesLeft <= 0 || !retryPredicate(err);
+    Logger.debug(
+      `Retry caught error, retries left: ${retriesLeft}, shouldRetry: ${shouldRetry}`,
+      err,
+    );
+    if (shouldRetry) {
       throw err;
     }
 
+    Logger.debug(`Sleeping for ${interval}ms before retrying...`);
     await sleep(interval);
 
     return await retry(fn, {
