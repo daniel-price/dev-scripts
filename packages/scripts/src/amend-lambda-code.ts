@@ -13,7 +13,6 @@ import { cleanEnv, str } from "envalid";
 
 export const R_Args = R.Record({
   functionName: R.String,
-  functionNameOptionak: R.String.optional(),
 });
 
 type T_Args = R.Static<typeof R_Args>;
