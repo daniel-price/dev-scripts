@@ -4,6 +4,7 @@ import fs from "fs";
 import * as Json from "./json";
 import * as Logger from "./logger";
 import * as R from "./runtypes";
+import * as Util from "./util";
 
 export enum E_DIRECTORIES {
   HOME = "/Users/daniel/",
@@ -154,4 +155,22 @@ export function getFilesRecursively(filePath: string): string[] {
     }
     return fullPath;
   });
+}
+
+export function transformCsvRows<T>(
+  fileNames: string[],
+  directory: E_DIRECTORIES,
+  r: R.Runtype<T>,
+  transformFn: (row: T) => T | undefined,
+): void {
+  for (const fileName of fileNames) {
+    const rows = readCsv(fileName, r, {
+      directory,
+    });
+
+    const transformedRows = rows.map(transformFn).filter(Util.isNonNil);
+    writeCsv("transformed-" + fileName, transformedRows, {
+      directory,
+    });
+  }
 }

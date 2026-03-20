@@ -21,12 +21,12 @@ export async function retry<T>(
   try {
     return await fn(retriesLeft);
   } catch (err) {
-    const shouldRetry = retriesLeft <= 0 || !retryPredicate(err);
+    const shouldRetry = retriesLeft > 0 && retryPredicate(err);
     Logger.debug(
       `Retry caught error, retries left: ${retriesLeft}, shouldRetry: ${shouldRetry}`,
       err,
     );
-    if (shouldRetry) {
+    if (!shouldRetry) {
       throw err;
     }
 
