@@ -1,7 +1,11 @@
 import { Clipboard, Json, Logger } from "@dev/util";
 
 function format(str: string): string | null {
-  let res = str
+  let res = str;
+
+  res = parseJson(res);
+
+  res = res
     .replaceAll(/^"/g, "")
     .replaceAll(/"$/g, "")
     .replaceAll("    +", "")
@@ -16,11 +20,18 @@ function format(str: string): string | null {
     //copied from SST logging
     .replaceAll(/\|/g, "")
     .replaceAll(/\+\d+ms/g, "");
-  try {
-    res = Json.stringify(JSON.parse(res));
-  } catch (e) {}
+
+  res = parseJson(res);
 
   return res;
+}
+
+function parseJson(str: string): string {
+  try {
+    return Json.stringify(JSON.parse(str));
+  } catch (e) {
+    return str;
+  }
 }
 
 export async function main(): Promise<void> {
