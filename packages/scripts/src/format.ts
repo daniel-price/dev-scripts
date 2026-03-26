@@ -1,9 +1,7 @@
 import { Clipboard, Json, Logger } from "@dev/util";
 
-function format(str: string): string | null {
+function formatString(str: string): string {
   let res = str;
-
-  res = parseJson(res);
 
   res = res
     .replaceAll(/^"/g, "")
@@ -21,12 +19,10 @@ function format(str: string): string | null {
     .replaceAll(/\|/g, "")
     .replaceAll(/\+\d+ms/g, "");
 
-  res = parseJson(res);
-
   return res;
 }
 
-function parseJson(str: string): string {
+function formatJson(str: string): string {
   try {
     return Json.stringify(JSON.parse(str));
   } catch (e) {
@@ -34,11 +30,25 @@ function parseJson(str: string): string {
   }
 }
 
+type Formatter = (input: string) => string;
+
+const formatters: Array<{
+  predicate?: (input: string) => boolean;
+  handler: Formatter;
+}> = [{ handler: formatString }, { handler: formatJson }];
+
 export async function main(): Promise<void> {
   const clipboard = Clipboard.get();
-  const res = format(clipboard);
+  let res = clipboard;
+
+  for (const { predicate, handler } of formatters) {
+    if (predicate?.(res)) {
+      res = handler(res);
+    }
+  }
 
   if (!res) {
+    Logger.warn("Result is empty, not copying to clipboard");
     return;
   }
 
