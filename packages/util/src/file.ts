@@ -146,10 +146,18 @@ export function fileExists(filePath: string): boolean {
   return fs.existsSync(filePath);
 }
 
-export function getFilesRecursively(filePath: string): string[] {
+export function getFilesRecursively(
+  filePath: string,
+  options = { ignore: (fullPath: string) => fullPath.includes("node_modules") },
+): string[] {
   const files = fs.readdirSync(filePath);
   return files.flatMap((f) => {
     const fullPath = `${filePath}/${f}`;
+
+    if (options.ignore(fullPath)) {
+      return [];
+    }
+
     if (fs.statSync(fullPath).isDirectory()) {
       return getFilesRecursively(fullPath);
     }
