@@ -1,16 +1,5 @@
 import { awsProxy } from "./awsProxy";
 
-export function resolveAwsRegion(optionalRegion?: string): string {
-  const region =
-    optionalRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
-  if (!region) {
-    throw new Error(
-      "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",
-    );
-  }
-  return region;
-}
-
 /**
  * Returns a function that yields one {@link awsProxy}-wrapped client per region.
  * Each call gets its own cache so different SDK clients never share entries.
@@ -20,7 +9,8 @@ export function regionalAwsClient<T extends object>(
 ): (region?: string) => T {
   const byRegion = new Map<string, T>();
   return (optionalRegion?: string) => {
-    const region = optionalRegion ?? process.env.AWS_REGION;
+    const region =
+      optionalRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
     if (!region) {
       throw new Error(
         "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",

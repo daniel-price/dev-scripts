@@ -2,15 +2,12 @@ import { CodePipeline, PipelineSummary } from "@aws-sdk/client-codepipeline";
 import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getCodePipelineClient = regionalAwsClient(CodePipeline);
 
 export async function listPipelines(): Promise<PipelineSummary[]> {
-  const codepipeline = getCodePipelineClient(resolveAwsRegion());
+  const codepipeline = getCodePipelineClient();
   const result = await codepipeline.listPipelines();
   Logger.debug("ListPipelines result:", result);
   return result.pipelines || [];
@@ -20,7 +17,7 @@ async function deletePipeline(pipeline: PipelineSummary): Promise<void> {
   if (!pipeline.name) {
     throw new Error("Pipeline name is undefined", { cause: pipeline });
   }
-  const codepipeline = getCodePipelineClient(resolveAwsRegion());
+  const codepipeline = getCodePipelineClient();
   await codepipeline.deletePipeline({ name: pipeline.name });
 }
 

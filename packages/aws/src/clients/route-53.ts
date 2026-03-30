@@ -10,10 +10,7 @@ import {
 } from "@aws-sdk/client-route-53";
 import { Logger } from "@dev/util";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getRoute53Client = regionalAwsClient(Route53Client);
 
@@ -21,7 +18,7 @@ export async function deleteRecordSet(
   hostedZoneId: string,
   resourceRecordSets: ResourceRecordSet[],
 ): Promise<ChangeResourceRecordSetsCommandOutput> {
-  const route53 = getRoute53Client(resolveAwsRegion());
+  const route53 = getRoute53Client();
   const changes = resourceRecordSets.map((r) => {
     return {
       Action: ChangeAction.DELETE,
@@ -48,7 +45,7 @@ async function listRecordRecordSetsBatch(
   hostedZoneId: string,
   startRecordName?: string,
 ): Promise<ListResourceRecordSetsCommandOutput> {
-  const route53 = getRoute53Client(resolveAwsRegion());
+  const route53 = getRoute53Client();
   const res = await route53.send(
     new ListResourceRecordSetsCommand({
       HostedZoneId: hostedZoneId,

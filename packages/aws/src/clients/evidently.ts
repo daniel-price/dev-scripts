@@ -5,15 +5,12 @@ import {
   ListProjectsCommand,
 } from "@aws-sdk/client-evidently";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getEvidentlyClient = regionalAwsClient(Evidently);
 
 export async function listProjects(nextToken?: string): Promise<Array<string>> {
-  const evidently = getEvidentlyClient(resolveAwsRegion());
+  const evidently = getEvidentlyClient();
   const result = await evidently.send(new ListProjectsCommand({ nextToken }));
 
   if (!result.projects) throw new Error("No projects");
@@ -31,7 +28,7 @@ export async function getFeatureFlags(
   project: string,
   nextToken?: string,
 ): Promise<FeatureSummary[]> {
-  const evidently = getEvidentlyClient(resolveAwsRegion());
+  const evidently = getEvidentlyClient();
   const result = await evidently.send(
     new ListFeaturesCommand({ project, nextToken }),
   );

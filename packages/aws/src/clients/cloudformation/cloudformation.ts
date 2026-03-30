@@ -16,10 +16,7 @@ import { ensureFieldsSet } from "@dev/util/src/types";
 import { isNonNil } from "@dev/util/src/util";
 
 import { yieldAll } from "../../helpers/aws";
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../../helpers/regionalAwsClient";
 import { StackSummary } from "./cloudformation-types";
 
 export const getCloudFormationClient = regionalAwsClient(CloudFormationClient);
@@ -45,7 +42,7 @@ export async function describeStackResources(
   stackStatuses: StackStatus[],
   resourceType?: string,
 ): Promise<string[]> {
-  const cf = getCloudFormationClient(resolveAwsRegion());
+  const cf = getCloudFormationClient();
   const params: DescribeStackResourcesCommandInput = { StackName: stackName };
   try {
     const command = new DescribeStackResourcesCommand(params);
@@ -76,7 +73,7 @@ export async function describeStackResources(
 export function listStacks(
   statusFilter?: StackStatus[],
 ): AsyncGenerator<StackSummary> {
-  const cf = getCloudFormationClient(resolveAwsRegion());
+  const cf = getCloudFormationClient();
   return yieldAll(async (token?: string | undefined) => {
     const response = await cf.send(
       new ListStacksCommand({
@@ -94,14 +91,14 @@ export function listStacks(
 }
 
 export async function deleteStack(stackName: string): Promise<void> {
-  const cf = getCloudFormationClient(resolveAwsRegion());
+  const cf = getCloudFormationClient();
   await cf.send(new DeleteStackCommand({ StackName: stackName }));
 }
 
 export async function describeStackEvents(
   stackName: string,
 ): Promise<DescribeStackEventsOutput> {
-  const cf = getCloudFormationClient(resolveAwsRegion());
+  const cf = getCloudFormationClient();
   const res = await cf.send(
     new DescribeStackEventsCommand({ StackName: stackName }),
   );
@@ -111,7 +108,7 @@ export async function describeStackEvents(
 export async function describeStack(
   stackName: string,
 ): Promise<DescribeStacksCommandOutput> {
-  const cf = getCloudFormationClient(resolveAwsRegion());
+  const cf = getCloudFormationClient();
   const params: DescribeStacksInput = { StackName: stackName };
   const res = await cf.send(new DescribeStacksCommand(params));
   return res;

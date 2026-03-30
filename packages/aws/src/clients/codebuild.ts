@@ -3,15 +3,12 @@ import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getCodeBuildClient = regionalAwsClient(CodeBuild);
 
 export function listProjects(): AsyncGenerator<string> {
-  const codebuild = getCodeBuildClient(resolveAwsRegion());
+  const codebuild = getCodeBuildClient();
   return yieldAll(async (token: string | undefined) => {
     const params: ListBuildsInput = {
       nextToken: token,
@@ -25,7 +22,7 @@ export function listProjects(): AsyncGenerator<string> {
 export async function deleteProjects(
   buildProjectBatchGenerator: AsyncGenerator<string[]>,
 ): Promise<void> {
-  const codebuild = getCodeBuildClient(resolveAwsRegion());
+  const codebuild = getCodeBuildClient();
   for await (const buildIdBatch of buildProjectBatchGenerator) {
     await changeItems(
       "delete CodeBuild projects",

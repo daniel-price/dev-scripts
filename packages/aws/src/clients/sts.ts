@@ -1,10 +1,7 @@
 import { DescribeExportCommandOutput } from "@aws-sdk/client-dynamodb";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getSTSClient = regionalAwsClient(STSClient);
 
@@ -24,7 +21,7 @@ export async function assumeRole(
     64 - prefix.length - suffix.length,
   )}${suffix}`;
 
-  const client = getSTSClient(resolveAwsRegion());
+  const client = getSTSClient();
   const response = await client.send(
     new AssumeRoleCommand({
       RoleArn: roleArn,

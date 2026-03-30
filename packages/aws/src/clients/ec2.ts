@@ -9,15 +9,12 @@ import {
   Vpc,
 } from "@aws-sdk/client-ec2";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getEC2Client = regionalAwsClient(EC2Client);
 
 export async function describeVpcs(vpcName: string): Promise<Vpc[]> {
-  const ec2 = getEC2Client(resolveAwsRegion());
+  const ec2 = getEC2Client();
   const res: DescribeVpcsCommandOutput = await ec2.send(
     new DescribeVpcsCommand({
       Filters: [
@@ -39,7 +36,7 @@ export async function describeVpcs(vpcName: string): Promise<Vpc[]> {
 export async function describeSecurityGroups(
   vpcId: string,
 ): Promise<SecurityGroup[]> {
-  const ec2 = getEC2Client(resolveAwsRegion());
+  const ec2 = getEC2Client();
   const res = await ec2.send(
     new DescribeSecurityGroupsCommand({
       Filters: [
@@ -59,7 +56,7 @@ export async function describeSecurityGroups(
 }
 
 export async function describeSubnets(vpcId: string): Promise<Subnet[]> {
-  const ec2 = getEC2Client(resolveAwsRegion());
+  const ec2 = getEC2Client();
   const res = await ec2.send(
     new DescribeSubnetsCommand({
       Filters: [

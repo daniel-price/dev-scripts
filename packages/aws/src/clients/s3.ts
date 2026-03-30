@@ -12,12 +12,20 @@ import {
 import { ChangeItems, Logger, Util } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getS3Client = regionalAwsClient(S3Client);
+
+function resolvedRegion(explicit?: string): string {
+  const region =
+    explicit ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
+  if (!region) {
+    throw new Error(
+      "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",
+    );
+  }
+  return region;
+}
 
 type Options = {
   skipPrompt: boolean;
@@ -28,7 +36,7 @@ export async function listObjectsInBucket(
   prefix?: string,
   region?: string,
 ): Promise<_Object[]> {
-  const res = await getS3Client(resolveAwsRegion(region)).send(
+  const res = await getS3Client(region).send(
     new ListObjectsCommand({ Bucket: bucket, Prefix: prefix }),
   );
 
@@ -40,7 +48,7 @@ export async function getObject(
   key: string,
   region?: string,
 ): Promise<string> {
-  const res = await getS3Client(resolveAwsRegion(region)).send(
+  const res = await getS3Client(region).send(
     new GetObjectCommand({ Bucket: bucket, Key: key }),
   );
 
@@ -52,7 +60,7 @@ export async function deleteBucket(
   bucket: string,
   options: { emptyFirst?: boolean; region?: string } & Partial<Options> = {},
 ): Promise<boolean> {
-  const region = resolveAwsRegion(options.region);
+  const region = resolvedRegion(options.region);
   try {
     Logger.info(`Deleting bucket ${bucket}...`);
     if (options.emptyFirst) {
@@ -144,7 +152,7 @@ export async function emptyBucket(
   bucket: string,
   options: Partial<Options> & { region?: string } = {},
 ): Promise<boolean> {
-  const region = resolveAwsRegion(options.region);
+  const region = resolvedRegion(options.region);
   while (true) {
     try {
       Logger.info(`Deleting bucket ${bucket}...`);
@@ -196,7 +204,7 @@ export async function deleteObjects(
     Bucket: bucket,
     Delete: { Objects: objects },
   });
-  await getS3Client(resolveAwsRegion(options.region)).send(command);
+  await getS3Client(options.region).send(command);
 
   return true;
 }
@@ -207,7 +215,7 @@ export async function headObject(
   region?: string,
 ): Promise<boolean> {
   try {
-    await getS3Client(resolveAwsRegion(region)).send(
+    await getS3Client(region).send(
       new HeadObjectCommand({ Bucket: bucket, Key: key }),
     );
     return true;
@@ -217,7 +225,7 @@ export async function headObject(
 }
 
 export async function listBuckets(region?: string): Promise<Bucket[]> {
-  const result = await getS3Client(resolveAwsRegion(region)).send(
+  const result = await getS3Client(region).send(
     new ListBucketsCommand({}),
   );
   return result.Buckets || [];

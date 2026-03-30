@@ -23,10 +23,7 @@ import { Async, Logger, R } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
-import {
-  regionalAwsClient,
-  resolveAwsRegion,
-} from "../helpers/regionalAwsClient";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getDynamoDBClient = regionalAwsClient(DynamoDBClient);
 
@@ -59,14 +56,14 @@ export function filterOptions(
 }
 
 export async function put(
+  client: DynamoDBClient,
   tableName: string,
   item: Record<string, unknown>,
 ): Promise<PutItemOutput> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const marshalledItem = marshall(item);
 
   const params: PutItemInput = { TableName: tableName, Item: marshalledItem };
-  const result = await ddb.send(new PutItemCommand(params));
+  const result = await client.send(new PutItemCommand(params));
 
   Logger.info("put result", result);
 
@@ -74,18 +71,18 @@ export async function put(
 }
 
 export async function get(
+  client: DynamoDBClient,
   tableName: string,
   attributeName: string,
   attributeValue: AttributeValue,
 ): Promise<Record<string, AttributeValue> | undefined> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params: GetItemInput = {
     TableName: tableName,
     Key: {
       [attributeName]: attributeValue,
     },
   };
-  const result = await ddb.send(new GetItemCommand(params));
+  const result = await client.send(new GetItemCommand(params));
 
   Logger.info("get result", result);
 
@@ -93,11 +90,11 @@ export async function get(
 }
 
 export function scan<T>(
+  client: DynamoDBClient,
   tableName: string,
   runtype: R.Runtype<T>,
   options: Partial<ScanInput> = {},
 ): AsyncGenerator<T> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params: ScanInput = {
     TableName: tableName,
     ...options,
@@ -105,7 +102,7 @@ export function scan<T>(
 
   return yieldAll(async (token?: Record<string, AttributeValue>) => {
     try {
-      const response = await ddb.send(
+      const response = await client.send(
         new ScanCommand({ ...params, ExclusiveStartKey: token, Limit: 1000 }),
       );
 
@@ -125,24 +122,25 @@ export function scan<T>(
 }
 
 export async function partiql<T>(
+  client: DynamoDBClient,
   statement: string,
   runtype: R.Runtype<T>,
   nextToken?: string,
   queryNumber = 0,
 ): Promise<T[]> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params = {
     Statement: statement,
     NextToken: nextToken,
   };
 
-  const data = await ddb.send(new ExecuteStatementCommand(params));
+  const data = await client.send(new ExecuteStatementCommand(params));
   const { Items, NextToken } = data;
   if (!Items) throw new Error("No items on partiql result");
 
   const unmarshalledItems = Items.map((i) => unmarshall(i)) as T[];
   if (NextToken) {
     const nextData = await partiql(
+      client,
       statement,
       runtype,
       NextToken,
@@ -157,11 +155,11 @@ export async function partiql<T>(
 }
 
 export async function deleteItems(
+  client: DynamoDBClient,
   tableName: string,
   keysGenerator: AsyncGenerator<Record<string, unknown>>,
   options: Partial<Options> & { totalCount?: number } = {},
 ): Promise<void> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const batchSize = 25; // DynamoDB batch write limit
   const batchGenerator = Async.batch(keysGenerator, batchSize);
   let totalCount = 0;
@@ -176,7 +174,7 @@ export async function deleteItems(
     }));
     if (!deleteRequests.length) continue;
 
-    await ddb.send(
+    await client.send(
       new BatchWriteItemCommand({
         RequestItems: {
           [tableName]: deleteRequests,
@@ -195,11 +193,11 @@ export async function deleteItems(
 }
 
 export async function deleteItem(
+  client: DynamoDBClient,
   tableName: string,
   key: Record<string, string>,
   options: Partial<Options> = {},
 ): Promise<DeleteItemOutput> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   if (!options.skipPrompt) {
     await confirmChangeItems(`delete item from ${tableName}`, [key]);
   }
@@ -209,16 +207,16 @@ export async function deleteItem(
     TableName: tableName,
     Key: marshalledKey,
   };
-  const result = await ddb.send(new DeleteItemCommand(params));
+  const result = await client.send(new DeleteItemCommand(params));
 
   return result;
 }
 
 export async function describeTable(
+  client: DynamoDBClient,
   tableName: string,
 ): Promise<TableDescription> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
-  const data = await ddb.send(
+  const data = await client.send(
     new DescribeTableCommand({
       TableName: tableName,
     }),
@@ -230,11 +228,11 @@ export async function describeTable(
 }
 
 export async function update(
+  client: DynamoDBClient,
   tableName: string,
   key: Record<string, AttributeValue>,
   updateObject: Record<string, AttributeValue>,
 ): Promise<void> {
-  const ddb = getDynamoDBClient(resolveAwsRegion());
   const updateExpression = `SET ${Object.keys(updateObject)
     .map((key) => `#${key} = :${key}`)
     .join(", ")}`;
@@ -256,5 +254,5 @@ export async function update(
     ExpressionAttributeValues: expressionAttributeValues,
   };
 
-  await ddb.send(new UpdateItemCommand(updateCmd));
+  await client.send(new UpdateItemCommand(updateCmd));
 }

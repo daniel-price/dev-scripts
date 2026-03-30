@@ -12,7 +12,12 @@ const R_TableItem = R.Record({
 });
 
 export async function main(args: T_Args): Promise<void> {
-  const tableItemsGenerator = DynamoDB.scan(args.table, R_TableItem);
+  const dynamoClient = DynamoDB.getDynamoDBClient();
+  const tableItemsGenerator = DynamoDB.scan(
+    dynamoClient,
+    args.table,
+    R_TableItem,
+  );
   for await (const item of tableItemsGenerator) {
     Logger.info("TableItems:", item);
   }
