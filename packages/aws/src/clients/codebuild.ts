@@ -3,7 +3,10 @@ import { Logger } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getCodeBuildClient = regionalAwsClient(CodeBuild);
 

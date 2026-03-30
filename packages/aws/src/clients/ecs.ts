@@ -11,7 +11,10 @@ import {
   Tag,
 } from "@aws-sdk/client-ecs";
 
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getECSClient = regionalAwsClient(ECSClient);
 

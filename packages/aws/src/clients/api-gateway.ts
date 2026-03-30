@@ -5,7 +5,10 @@ import {
 } from "@aws-sdk/client-api-gateway";
 
 import { yieldAll } from "../helpers/aws";
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getAPIGatewayClient = regionalAwsClient(APIGatewayClient);
 

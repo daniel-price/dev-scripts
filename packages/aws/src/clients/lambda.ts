@@ -15,7 +15,10 @@ import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
 import { yieldAll } from "../helpers/aws";
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getLambdaClient = regionalAwsClient(LambdaClient);
 

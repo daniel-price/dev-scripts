@@ -17,9 +17,7 @@ export const getSsmClient = regionalAwsClient(SSM);
 /** SSM client region: env, or legacy default used before regional factories. */
 function ssmRegion(): string {
   return (
-    process.env.AWS_REGION ??
-    process.env.AWS_DEFAULT_REGION ??
-    "us-east-1"
+    process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "us-east-1"
   );
 }
 

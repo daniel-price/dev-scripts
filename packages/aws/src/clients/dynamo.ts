@@ -23,7 +23,10 @@ import { Async, Logger, R } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getDynamoDBClient = regionalAwsClient(DynamoDBClient);
 

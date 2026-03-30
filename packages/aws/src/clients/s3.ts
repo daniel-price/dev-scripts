@@ -12,7 +12,10 @@ import {
 import { ChangeItems, Logger, Util } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
 
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getS3Client = regionalAwsClient(S3Client);
 

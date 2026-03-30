@@ -10,7 +10,10 @@ import {
 } from "@aws-sdk/client-route-53";
 import { Logger } from "@dev/util";
 
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getRoute53Client = regionalAwsClient(Route53Client);
 

@@ -5,7 +5,10 @@ import {
   ListProjectsCommand,
 } from "@aws-sdk/client-evidently";
 
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getEvidentlyClient = regionalAwsClient(Evidently);
 

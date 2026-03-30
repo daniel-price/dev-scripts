@@ -9,7 +9,10 @@ import {
   Vpc,
 } from "@aws-sdk/client-ec2";
 
-import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../helpers/regionalAwsClient";
 
 export const getEC2Client = regionalAwsClient(EC2Client);
 

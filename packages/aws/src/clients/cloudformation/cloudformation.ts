@@ -16,11 +16,13 @@ import { ensureFieldsSet } from "@dev/util/src/types";
 import { isNonNil } from "@dev/util/src/util";
 
 import { yieldAll } from "../../helpers/aws";
-import { regionalAwsClient, resolveAwsRegion } from "../../helpers/regionalAwsClient";
+import {
+  regionalAwsClient,
+  resolveAwsRegion,
+} from "../../helpers/regionalAwsClient";
 import { StackSummary } from "./cloudformation-types";
 
-export const getCloudFormationClient =
-  regionalAwsClient(CloudFormationClient);
+export const getCloudFormationClient = regionalAwsClient(CloudFormationClient);
 
 export { StackStatus };
 
