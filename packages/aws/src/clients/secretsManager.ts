@@ -4,16 +4,9 @@ import {
 } from "@aws-sdk/client-secrets-manager";
 import { Json, R } from "@dev/util";
 
-import { awsProxy } from "../helpers/awsProxy";
+import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
-const CLIENTS_BY_REGION: Record<string, SecretsManagerClient> = {};
-
-export function getSecretsManagerClient(region: string): SecretsManagerClient {
-  if (CLIENTS_BY_REGION[region]) return CLIENTS_BY_REGION[region];
-  const client = awsProxy(new SecretsManagerClient({ region }));
-  CLIENTS_BY_REGION[region] = client;
-  return client;
-}
+export const getSecretsManagerClient = regionalAwsClient(SecretsManagerClient);
 
 export async function getStringSecret(
   client: SecretsManagerClient,

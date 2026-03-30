@@ -15,11 +15,12 @@ import { confirmChangeItems } from "@dev/util/src/change-items";
 import fs from "fs";
 
 import { yieldAll } from "../helpers/aws";
-import { awsProxy } from "../helpers/awsProxy";
+import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
 
-const lambda = awsProxy(new LambdaClient());
+export const getLambdaClient = regionalAwsClient(LambdaClient);
 
 export function listLambdaFunctions(): AsyncGenerator<FunctionConfiguration> {
+  const lambda = getLambdaClient(resolveAwsRegion());
   return yieldAll(async (nextToken?: string) => {
     const res = await lambda.send(
       new ListFunctionsCommand({ Marker: nextToken }),
@@ -32,6 +33,7 @@ export async function invoke(
   functionName: string,
   payload?: Record<string, unknown>,
 ): Promise<InvokeCommandOutput> {
+  const lambda = getLambdaClient(resolveAwsRegion());
   const payloadString = payload
     ? Buffer.from(Json.stringify(payload), "utf8")
     : undefined;
@@ -47,6 +49,7 @@ export async function invoke(
 export async function getFunction(
   functionName: string,
 ): Promise<GetFunctionCommandOutput> {
+  const lambda = getLambdaClient(resolveAwsRegion());
   const res = await lambda.send(
     new GetFunctionCommand({
       FunctionName: functionName,
@@ -60,6 +63,7 @@ export async function updateFunctionCode(
   functionName: string,
   zipFile: string,
 ): Promise<UpdateFunctionCodeCommandOutput> {
+  const lambda = getLambdaClient(resolveAwsRegion());
   return await lambda.send(
     new UpdateFunctionCodeCommand({
       FunctionName: functionName,
@@ -70,6 +74,7 @@ export async function updateFunctionCode(
 }
 
 export async function deleteLambdaFunctions(fnNames: string[]): Promise<void> {
+  const lambda = getLambdaClient(resolveAwsRegion());
   await confirmChangeItems("delete Lambda functions", fnNames);
   for (const fnName of fnNames) {
     await lambda.send(

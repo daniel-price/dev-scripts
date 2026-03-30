@@ -5,11 +5,12 @@ import {
 } from "@aws-sdk/client-api-gateway";
 
 import { yieldAll } from "../helpers/aws";
-import { awsProxy } from "../helpers/awsProxy";
+import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
 
-const client = awsProxy(new APIGatewayClient());
+export const getAPIGatewayClient = regionalAwsClient(APIGatewayClient);
 
 export function getCustomDomainNames(): AsyncGenerator<DomainName> {
+  const client = getAPIGatewayClient(resolveAwsRegion());
   return yieldAll(async (nextToken?: string) => {
     const res = await client.send(
       new GetDomainNamesCommand({ position: nextToken }),

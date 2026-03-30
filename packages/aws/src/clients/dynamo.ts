@@ -23,9 +23,9 @@ import { Async, Logger, R } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
-import { awsProxy } from "../helpers/awsProxy";
+import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
 
-const ddb = awsProxy(new DynamoDBClient());
+export const getDynamoDBClient = regionalAwsClient(DynamoDBClient);
 
 export enum Filter {
   BEGINS_WITH = "begins_with",
@@ -59,6 +59,7 @@ export async function put(
   tableName: string,
   item: Record<string, unknown>,
 ): Promise<PutItemOutput> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const marshalledItem = marshall(item);
 
   const params: PutItemInput = { TableName: tableName, Item: marshalledItem };
@@ -74,6 +75,7 @@ export async function get(
   attributeName: string,
   attributeValue: AttributeValue,
 ): Promise<Record<string, AttributeValue> | undefined> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params: GetItemInput = {
     TableName: tableName,
     Key: {
@@ -92,6 +94,7 @@ export function scan<T>(
   runtype: R.Runtype<T>,
   options: Partial<ScanInput> = {},
 ): AsyncGenerator<T> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params: ScanInput = {
     TableName: tableName,
     ...options,
@@ -124,6 +127,7 @@ export async function partiql<T>(
   nextToken?: string,
   queryNumber = 0,
 ): Promise<T[]> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const params = {
     Statement: statement,
     NextToken: nextToken,
@@ -154,6 +158,7 @@ export async function deleteItems(
   keysGenerator: AsyncGenerator<Record<string, unknown>>,
   options: Partial<Options> & { totalCount?: number } = {},
 ): Promise<void> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const batchSize = 25; // DynamoDB batch write limit
   const batchGenerator = Async.batch(keysGenerator, batchSize);
   let totalCount = 0;
@@ -174,8 +179,8 @@ export async function deleteItems(
           [tableName]: deleteRequests,
         },
       }),
-    ),
-      (totalCount += batch.length);
+    );
+    totalCount += batch.length;
     Logger.info(
       `Deleted batch of ${
         batch.length
@@ -191,6 +196,7 @@ export async function deleteItem(
   key: Record<string, string>,
   options: Partial<Options> = {},
 ): Promise<DeleteItemOutput> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   if (!options.skipPrompt) {
     await confirmChangeItems(`delete item from ${tableName}`, [key]);
   }
@@ -208,6 +214,7 @@ export async function deleteItem(
 export async function describeTable(
   tableName: string,
 ): Promise<TableDescription> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const data = await ddb.send(
     new DescribeTableCommand({
       TableName: tableName,
@@ -224,6 +231,7 @@ export async function update(
   key: Record<string, AttributeValue>,
   updateObject: Record<string, AttributeValue>,
 ): Promise<void> {
+  const ddb = getDynamoDBClient(resolveAwsRegion());
   const updateExpression = `SET ${Object.keys(updateObject)
     .map((key) => `#${key} = :${key}`)
     .join(", ")}`;

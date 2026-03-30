@@ -16,10 +16,11 @@ import { ensureFieldsSet } from "@dev/util/src/types";
 import { isNonNil } from "@dev/util/src/util";
 
 import { yieldAll } from "../../helpers/aws";
-import { awsProxy } from "../../helpers/awsProxy";
+import { regionalAwsClient, resolveAwsRegion } from "../../helpers/regionalAwsClient";
 import { StackSummary } from "./cloudformation-types";
 
-const cf = awsProxy(new CloudFormationClient());
+export const getCloudFormationClient =
+  regionalAwsClient(CloudFormationClient);
 
 export { StackStatus };
 
@@ -42,6 +43,7 @@ export async function describeStackResources(
   stackStatuses: StackStatus[],
   resourceType?: string,
 ): Promise<string[]> {
+  const cf = getCloudFormationClient(resolveAwsRegion());
   const params: DescribeStackResourcesCommandInput = { StackName: stackName };
   try {
     const command = new DescribeStackResourcesCommand(params);
@@ -72,6 +74,7 @@ export async function describeStackResources(
 export function listStacks(
   statusFilter?: StackStatus[],
 ): AsyncGenerator<StackSummary> {
+  const cf = getCloudFormationClient(resolveAwsRegion());
   return yieldAll(async (token?: string | undefined) => {
     const response = await cf.send(
       new ListStacksCommand({
@@ -89,12 +92,14 @@ export function listStacks(
 }
 
 export async function deleteStack(stackName: string): Promise<void> {
+  const cf = getCloudFormationClient(resolveAwsRegion());
   await cf.send(new DeleteStackCommand({ StackName: stackName }));
 }
 
 export async function describeStackEvents(
   stackName: string,
 ): Promise<DescribeStackEventsOutput> {
+  const cf = getCloudFormationClient(resolveAwsRegion());
   const res = await cf.send(
     new DescribeStackEventsCommand({ StackName: stackName }),
   );
@@ -104,6 +109,7 @@ export async function describeStackEvents(
 export async function describeStack(
   stackName: string,
 ): Promise<DescribeStacksCommandOutput> {
+  const cf = getCloudFormationClient(resolveAwsRegion());
   const params: DescribeStacksInput = { StackName: stackName };
   const res = await cf.send(new DescribeStacksCommand(params));
   return res;

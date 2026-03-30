@@ -11,11 +11,12 @@ import {
   Tag,
 } from "@aws-sdk/client-ecs";
 
-import { awsProxy } from "../helpers/awsProxy";
+import { regionalAwsClient, resolveAwsRegion } from "../helpers/regionalAwsClient";
 
-const ecs = awsProxy(new ECSClient());
+export const getECSClient = regionalAwsClient(ECSClient);
 
 export async function listTasks(clusterArn: string): Promise<string[]> {
+  const ecs = getECSClient(resolveAwsRegion());
   const res = await ecs.send(
     new ListTasksCommand({
       cluster: clusterArn,
@@ -26,6 +27,7 @@ export async function listTasks(clusterArn: string): Promise<string[]> {
 }
 
 export async function listTags(resourceArn: string): Promise<Tag[]> {
+  const ecs = getECSClient(resolveAwsRegion());
   const res = await ecs.send(new ListTagsForResourceCommand({ resourceArn }));
 
   return res.tags || [];
@@ -34,6 +36,7 @@ export async function listTags(resourceArn: string): Promise<Tag[]> {
 export async function listTaskDefinitionFamilies(
   familyPrefix: string,
 ): Promise<string[]> {
+  const ecs = getECSClient(resolveAwsRegion());
   const res = await ecs.send(
     new ListTaskDefinitionFamiliesCommand({
       familyPrefix,
@@ -52,6 +55,7 @@ export async function listTaskDefinitionFamilies(
 export async function listTaskDefinitions(
   familyPrefix: string,
 ): Promise<string[]> {
+  const ecs = getECSClient(resolveAwsRegion());
   const res: ListTaskDefinitionsCommandOutput = await ecs.send(
     new ListTaskDefinitionsCommand({
       familyPrefix,
@@ -76,6 +80,7 @@ export async function runTask(
     environment: { name: string; value: string }[];
   }[],
 ): Promise<RunTaskCommandOutput> {
+  const ecs = getECSClient(resolveAwsRegion());
   const params: RunTaskCommandInput = {
     cluster: clusterArn,
     taskDefinition,
