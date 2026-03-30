@@ -10,10 +10,11 @@ type T_Args = R.Static<typeof R_Args>;
 
 export async function main(args: T_Args): Promise<void> {
   const { bucketName, emptyOnly } = args;
+  const s3 = S3.getS3Client();
   Logger.info(
     `Emptying${emptyOnly ? "" : " and deleting"} s3 bucket`,
     bucketName,
   );
-  await S3.emptyBucket(bucketName, { skipPrompt: true });
-  if (!emptyOnly) await S3.deleteBucket(bucketName);
+  await S3.emptyBucket(s3, bucketName, { skipPrompt: true });
+  if (!emptyOnly) await S3.deleteBucket(s3, bucketName);
 }

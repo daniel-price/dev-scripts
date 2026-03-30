@@ -1,4 +1,7 @@
-import { StackStatus } from "@aws-sdk/client-cloudformation";
+import {
+  CloudFormationClient,
+  StackStatus,
+} from "@aws-sdk/client-cloudformation";
 import { ChangeItems, Logger, Util } from "@dev/util";
 
 import { isSdkError } from "../../helpers/error";
@@ -11,8 +14,11 @@ import { StackSummary } from "./cloudformation-types";
 
 export class Batches {
   private _stacksBatches: Array<StackBatch>;
-  constructor(stacksBatches: Array<Array<StackSummary>>) {
-    this._stacksBatches = stacksBatches.map((sb) => new StackBatch(sb));
+  constructor(
+    client: CloudFormationClient,
+    stacksBatches: Array<Array<StackSummary>>,
+  ) {
+    this._stacksBatches = stacksBatches.map((sb) => new StackBatch(client, sb));
   }
 
   public async deleteAll(): Promise<boolean> {
@@ -79,9 +85,9 @@ export class Batches {
 
 class StackBatch {
   private _stacks: Array<Stack>;
-  constructor(stacks: Array<StackSummary>) {
+  constructor(client: CloudFormationClient, stacks: Array<StackSummary>) {
     this._stacks = stacks.map(
-      (s) => new Stack(s.StackName, s.StackStatus as T_StackStatus),
+      (s) => new Stack(client, s.StackName, s.StackStatus as T_StackStatus),
     );
   }
 
@@ -108,6 +114,7 @@ class Stack {
   private _status = STATUS.WAITING;
   private _stackStatuses: Array<T_StackStatus>;
   constructor(
+    private readonly client: CloudFormationClient,
     private _stackName: string,
     stackStatus: T_StackStatus,
   ) {
@@ -117,11 +124,11 @@ class Stack {
   public async delete(): Promise<boolean> {
     const startTime = new Date().getTime();
     this._status = STATUS.PROCESSING;
-    await deleteStack(this._stackName);
+    await deleteStack(this.client, this._stackName);
 
     const success = await this.waitForDone();
     if (!success) {
-      const events = await describeStackEvents(this._stackName);
+      const events = await describeStackEvents(this.client, this._stackName);
       const errorMessage = events.StackEvents?.filter(
         (s) =>
           ["DELETE_FAILED", "UPDATE_ROLLBACK_FAILED"].includes(
@@ -201,7 +208,7 @@ class Stack {
 
   private async _getLatestStatus(): Promise<T_StackStatus> {
     try {
-      const res = await describeStack(this._stackName);
+      const res = await describeStack(this.client, this._stackName);
 
       const stackStatus = res.Stacks?.[0].StackStatus;
       if (!stackStatus) {

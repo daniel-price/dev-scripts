@@ -15,9 +15,11 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getECSClient = regionalAwsClient(ECSClient);
 
-export async function listTasks(clusterArn: string): Promise<string[]> {
-  const ecs = getECSClient();
-  const res = await ecs.send(
+export async function listTasks(
+  client: ECSClient,
+  clusterArn: string,
+): Promise<string[]> {
+  const res = await client.send(
     new ListTasksCommand({
       cluster: clusterArn,
     }),
@@ -26,18 +28,22 @@ export async function listTasks(clusterArn: string): Promise<string[]> {
   return res.taskArns || [];
 }
 
-export async function listTags(resourceArn: string): Promise<Tag[]> {
-  const ecs = getECSClient();
-  const res = await ecs.send(new ListTagsForResourceCommand({ resourceArn }));
+export async function listTags(
+  client: ECSClient,
+  resourceArn: string,
+): Promise<Tag[]> {
+  const res = await client.send(
+    new ListTagsForResourceCommand({ resourceArn }),
+  );
 
   return res.tags || [];
 }
 
 export async function listTaskDefinitionFamilies(
+  client: ECSClient,
   familyPrefix: string,
 ): Promise<string[]> {
-  const ecs = getECSClient();
-  const res = await ecs.send(
+  const res = await client.send(
     new ListTaskDefinitionFamiliesCommand({
       familyPrefix,
     }),
@@ -53,10 +59,10 @@ export async function listTaskDefinitionFamilies(
 }
 
 export async function listTaskDefinitions(
+  client: ECSClient,
   familyPrefix: string,
 ): Promise<string[]> {
-  const ecs = getECSClient();
-  const res: ListTaskDefinitionsCommandOutput = await ecs.send(
+  const res: ListTaskDefinitionsCommandOutput = await client.send(
     new ListTaskDefinitionsCommand({
       familyPrefix,
     }),
@@ -70,6 +76,7 @@ export async function listTaskDefinitions(
 }
 
 export async function runTask(
+  client: ECSClient,
   clusterArn: string,
   taskDefinition: string,
   tags: { key: string; value: string }[],
@@ -80,7 +87,6 @@ export async function runTask(
     environment: { name: string; value: string }[];
   }[],
 ): Promise<RunTaskCommandOutput> {
-  const ecs = getECSClient();
   const params: RunTaskCommandInput = {
     cluster: clusterArn,
     taskDefinition,
@@ -98,6 +104,6 @@ export async function runTask(
     },
   };
 
-  const res = await ecs.send(new RunTaskCommand(params));
+  const res = await client.send(new RunTaskCommand(params));
   return res;
 }

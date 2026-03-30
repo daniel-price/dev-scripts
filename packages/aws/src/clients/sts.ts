@@ -1,13 +1,17 @@
-import { DescribeExportCommandOutput } from "@aws-sdk/client-dynamodb";
-import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
+import {
+  AssumeRoleCommand,
+  AssumeRoleCommandOutput,
+  STSClient,
+} from "@aws-sdk/client-sts";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getSTSClient = regionalAwsClient(STSClient);
 
 export async function assumeRole(
+  client: STSClient,
   roleArn: string,
-): Promise<DescribeExportCommandOutput> {
+): Promise<AssumeRoleCommandOutput> {
   const prefix = "danp-";
   const suffix = `-${Date.now().toString()}`;
   const roleName = roleArn.split("/")[1];
@@ -21,7 +25,6 @@ export async function assumeRole(
     64 - prefix.length - suffix.length,
   )}${suffix}`;
 
-  const client = getSTSClient();
   const response = await client.send(
     new AssumeRoleCommand({
       RoleArn: roleArn,

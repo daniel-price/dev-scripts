@@ -16,27 +16,26 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getS3Client = regionalAwsClient(S3Client);
 
-function resolvedRegion(explicit?: string): string {
-  const region =
-    explicit ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
-  if (!region) {
-    throw new Error(
-      "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",
-    );
-  }
-  return region;
-}
-
 type Options = {
   skipPrompt: boolean;
 };
 
+async function resolveS3ClientRegion(client: S3Client): Promise<string> {
+  const r = client.config.region;
+  if (r === undefined) {
+    throw new Error(
+      "S3 client has no region: use getS3Client(region) with a resolved region",
+    );
+  }
+  return typeof r === "function" ? await r() : r;
+}
+
 export async function listObjectsInBucket(
+  client: S3Client,
   bucket: string,
   prefix?: string,
-  region?: string,
 ): Promise<_Object[]> {
-  const res = await getS3Client(region).send(
+  const res = await client.send(
     new ListObjectsCommand({ Bucket: bucket, Prefix: prefix }),
   );
 
@@ -44,11 +43,11 @@ export async function listObjectsInBucket(
 }
 
 export async function getObject(
+  client: S3Client,
   bucket: string,
   key: string,
-  region?: string,
 ): Promise<string> {
-  const res = await getS3Client(region).send(
+  const res = await client.send(
     new GetObjectCommand({ Bucket: bucket, Key: key }),
   );
 
@@ -57,23 +56,24 @@ export async function getObject(
 }
 
 export async function deleteBucket(
+  client: S3Client,
   bucket: string,
-  options: { emptyFirst?: boolean; region?: string } & Partial<Options> = {},
+  options: { emptyFirst?: boolean } & Partial<Options> = {},
 ): Promise<boolean> {
-  const region = resolvedRegion(options.region);
+  const region = await resolveS3ClientRegion(client);
   try {
     Logger.info(`Deleting bucket ${bucket}...`);
     if (options.emptyFirst) {
-      await emptyBucket(bucket, { skipPrompt: options.skipPrompt, region });
+      await emptyBucket(client, bucket, { skipPrompt: options.skipPrompt });
     }
     const command = new DeleteBucketCommand({ Bucket: bucket });
-    await getS3Client(region).send(command);
+    await client.send(command);
     Logger.info(`Bucket ${bucket} deleted successfully.`);
     return true;
   } catch (e) {
     const handled = await handleRedirect(
       e,
-      (r) => deleteBucket(bucket, { ...options, region: r }),
+      (r) => deleteBucket(getS3Client(r), bucket, options),
       region,
     );
     if (handled) return true;
@@ -140,23 +140,25 @@ async function handleRedirect(
 }
 
 export async function deleteBuckets(
+  client: S3Client,
   bucketNames: string[],
-  options: Parameters<typeof deleteBucket>[1] = {},
+  options: Parameters<typeof deleteBucket>[2] = {},
 ): Promise<void> {
   await changeItems("Delete buckets", bucketNames, (bucketName: string) =>
-    deleteBucket(bucketName, options),
+    deleteBucket(client, bucketName, options),
   );
 }
 
 export async function emptyBucket(
+  client: S3Client,
   bucket: string,
-  options: Partial<Options> & { region?: string } = {},
+  options: Partial<Options> = {},
 ): Promise<boolean> {
-  const region = resolvedRegion(options.region);
+  const region = await resolveS3ClientRegion(client);
   while (true) {
     try {
       Logger.info(`Deleting bucket ${bucket}...`);
-      const objects = await listObjectsInBucket(bucket, undefined, region);
+      const objects = await listObjectsInBucket(client, bucket, undefined);
       Logger.info(`Found ${objects.length} objects in bucket ${bucket}.`);
       if (objects.length === 0) {
         Logger.info(`Bucket ${bucket} is already empty.`);
@@ -164,17 +166,18 @@ export async function emptyBucket(
       }
 
       await deleteObjects(
+        client,
         bucket,
         objects.map(({ Key }) => {
           if (!Key) throw new Error("Key is not defined");
           return { Key };
         }),
-        { ...options, region },
+        options,
       );
     } catch (e) {
       const handled = await handleRedirect(
         e,
-        (r) => emptyBucket(bucket, { ...options, region: r }),
+        (r) => emptyBucket(getS3Client(r), bucket, options),
         region,
       );
       if (handled) return true;
@@ -185,9 +188,10 @@ export async function emptyBucket(
 }
 
 export async function deleteObjects(
+  client: S3Client,
   bucket: string,
   objects: { Key: string }[],
-  options: Partial<Options> & { region?: string } = {},
+  options: Partial<Options> = {},
 ): Promise<boolean> {
   if (!objects.length) {
     Logger.info(`no objects to delete in bucket ${bucket}`);
@@ -204,29 +208,25 @@ export async function deleteObjects(
     Bucket: bucket,
     Delete: { Objects: objects },
   });
-  await getS3Client(options.region).send(command);
+  await client.send(command);
 
   return true;
 }
 
 export async function headObject(
+  client: S3Client,
   bucket: string,
   key: string,
-  region?: string,
 ): Promise<boolean> {
   try {
-    await getS3Client(region).send(
-      new HeadObjectCommand({ Bucket: bucket, Key: key }),
-    );
+    await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
     return true;
   } catch (e) {
     return false;
   }
 }
 
-export async function listBuckets(region?: string): Promise<Bucket[]> {
-  const result = await getS3Client(region).send(
-    new ListBucketsCommand({}),
-  );
+export async function listBuckets(client: S3Client): Promise<Bucket[]> {
+  const result = await client.send(new ListBucketsCommand({}));
   return result.Buckets || [];
 }

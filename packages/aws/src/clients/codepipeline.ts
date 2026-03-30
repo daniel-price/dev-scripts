@@ -6,28 +6,32 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getCodePipelineClient = regionalAwsClient(CodePipeline);
 
-export async function listPipelines(): Promise<PipelineSummary[]> {
-  const codepipeline = getCodePipelineClient();
-  const result = await codepipeline.listPipelines();
+export async function listPipelines(
+  client: CodePipeline,
+): Promise<PipelineSummary[]> {
+  const result = await client.listPipelines();
   Logger.debug("ListPipelines result:", result);
   return result.pipelines || [];
 }
 
-async function deletePipeline(pipeline: PipelineSummary): Promise<void> {
+async function deletePipeline(
+  client: CodePipeline,
+  pipeline: PipelineSummary,
+): Promise<void> {
   if (!pipeline.name) {
     throw new Error("Pipeline name is undefined", { cause: pipeline });
   }
-  const codepipeline = getCodePipelineClient();
-  await codepipeline.deletePipeline({ name: pipeline.name });
+  await client.deletePipeline({ name: pipeline.name });
 }
 
 export async function deletePipelines(
+  client: CodePipeline,
   pipelines: PipelineSummary[],
 ): Promise<void> {
   await changeItems(
     "Delete CodePipelines",
     pipelines,
-    deletePipeline,
+    (pipeline) => deletePipeline(client, pipeline),
     (pipeline) => pipeline.name,
   );
 }

@@ -21,9 +21,10 @@ async function updateCode(
   functionName: string,
   downloadFolder: string,
 ): Promise<void> {
+  const lambda = Lambda.getLambdaClient();
   const functionNameWithDate = `${functionName}-${Date.now()}`;
 
-  const res = await Lambda.getFunction(functionName);
+  const res = await Lambda.getFunction(lambda, functionName);
 
   const codeUrl = res.Code?.Location;
   if (!codeUrl) {
@@ -64,7 +65,7 @@ async function updateCode(
   await Execute.exec(`zip ${newZipFile} -r .`, unzippedFolder);
 
   Logger.info("Uploading new code");
-  await Lambda.updateFunctionCode(functionName, newZipFile);
+  await Lambda.updateFunctionCode(lambda, functionName, newZipFile);
 
   Logger.info("Uploaded new code");
 }

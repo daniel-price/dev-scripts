@@ -15,10 +15,10 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 export const getRoute53Client = regionalAwsClient(Route53Client);
 
 export async function deleteRecordSet(
+  client: Route53Client,
   hostedZoneId: string,
   resourceRecordSets: ResourceRecordSet[],
 ): Promise<ChangeResourceRecordSetsCommandOutput> {
-  const route53 = getRoute53Client();
   const changes = resourceRecordSets.map((r) => {
     return {
       Action: ChangeAction.DELETE,
@@ -29,7 +29,7 @@ export async function deleteRecordSet(
     Changes: changes,
   };
 
-  const res = await route53.send(
+  const res = await client.send(
     new ChangeResourceRecordSetsCommand({
       HostedZoneId: hostedZoneId,
       ChangeBatch: changeBatch,
@@ -42,11 +42,11 @@ export async function deleteRecordSet(
 }
 
 async function listRecordRecordSetsBatch(
+  client: Route53Client,
   hostedZoneId: string,
   startRecordName?: string,
 ): Promise<ListResourceRecordSetsCommandOutput> {
-  const route53 = getRoute53Client();
-  const res = await route53.send(
+  const res = await client.send(
     new ListResourceRecordSetsCommand({
       HostedZoneId: hostedZoneId,
       StartRecordName: startRecordName,
@@ -58,12 +58,17 @@ async function listRecordRecordSetsBatch(
 }
 
 export async function listRecordRecordSets(
+  client: Route53Client,
   hostedZoneId: string,
 ): Promise<Array<ResourceRecordSet>> {
   let nextRecordName: string | undefined;
   const allRecords = new Array<ResourceRecordSet>();
   do {
-    const res = await listRecordRecordSetsBatch(hostedZoneId, nextRecordName);
+    const res = await listRecordRecordSetsBatch(
+      client,
+      hostedZoneId,
+      nextRecordName,
+    );
     nextRecordName = res.NextRecordName;
     allRecords.push(...(res.ResourceRecordSets || []));
 

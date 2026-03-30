@@ -10,7 +10,9 @@ export function regionalAwsClient<T extends object>(
   const byRegion = new Map<string, T>();
   return (optionalRegion?: string) => {
     const region =
-      optionalRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
+      optionalRegion ??
+      process.env.AWS_REGION ??
+      process.env.AWS_DEFAULT_REGION;
     if (!region) {
       throw new Error(
         "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",

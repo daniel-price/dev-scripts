@@ -9,8 +9,9 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getAPIGatewayClient = regionalAwsClient(APIGatewayClient);
 
-export function getCustomDomainNames(): AsyncGenerator<DomainName> {
-  const client = getAPIGatewayClient();
+export function getCustomDomainNames(
+  client: APIGatewayClient,
+): AsyncGenerator<DomainName> {
   return yieldAll(async (nextToken?: string) => {
     const res = await client.send(
       new GetDomainNamesCommand({ position: nextToken }),

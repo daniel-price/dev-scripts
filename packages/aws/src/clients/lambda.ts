@@ -19,10 +19,11 @@ import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getLambdaClient = regionalAwsClient(LambdaClient);
 
-export function listLambdaFunctions(): AsyncGenerator<FunctionConfiguration> {
-  const lambda = getLambdaClient();
+export function listLambdaFunctions(
+  client: LambdaClient,
+): AsyncGenerator<FunctionConfiguration> {
   return yieldAll(async (nextToken?: string) => {
-    const res = await lambda.send(
+    const res = await client.send(
       new ListFunctionsCommand({ Marker: nextToken }),
     );
     return { results: res.Functions, nextToken: res.NextMarker };
@@ -30,14 +31,14 @@ export function listLambdaFunctions(): AsyncGenerator<FunctionConfiguration> {
 }
 
 export async function invoke(
+  client: LambdaClient,
   functionName: string,
   payload?: Record<string, unknown>,
 ): Promise<InvokeCommandOutput> {
-  const lambda = getLambdaClient();
   const payloadString = payload
     ? Buffer.from(Json.stringify(payload), "utf8")
     : undefined;
-  return await lambda.send(
+  return await client.send(
     new InvokeCommand({
       FunctionName: functionName,
       InvocationType: "Event",
@@ -47,10 +48,10 @@ export async function invoke(
 }
 
 export async function getFunction(
+  client: LambdaClient,
   functionName: string,
 ): Promise<GetFunctionCommandOutput> {
-  const lambda = getLambdaClient();
-  const res = await lambda.send(
+  const res = await client.send(
     new GetFunctionCommand({
       FunctionName: functionName,
     }),
@@ -60,11 +61,11 @@ export async function getFunction(
 }
 
 export async function updateFunctionCode(
+  client: LambdaClient,
   functionName: string,
   zipFile: string,
 ): Promise<UpdateFunctionCodeCommandOutput> {
-  const lambda = getLambdaClient();
-  return await lambda.send(
+  return await client.send(
     new UpdateFunctionCodeCommand({
       FunctionName: functionName,
       ZipFile: fs.readFileSync(zipFile),
@@ -73,11 +74,13 @@ export async function updateFunctionCode(
   );
 }
 
-export async function deleteLambdaFunctions(fnNames: string[]): Promise<void> {
-  const lambda = getLambdaClient();
+export async function deleteLambdaFunctions(
+  client: LambdaClient,
+  fnNames: string[],
+): Promise<void> {
   await confirmChangeItems("delete Lambda functions", fnNames);
   for (const fnName of fnNames) {
-    await lambda.send(
+    await client.send(
       new DeleteFunctionCommand({
         FunctionName: fnName,
       }),

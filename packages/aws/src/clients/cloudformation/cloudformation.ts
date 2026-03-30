@@ -38,16 +38,16 @@ export const ACTIVE_STACK_STATUSES = [
 ];
 
 export async function describeStackResources(
+  client: CloudFormationClient,
   stackName: string,
   stackStatuses: StackStatus[],
   resourceType?: string,
 ): Promise<string[]> {
-  const cf = getCloudFormationClient();
   const params: DescribeStackResourcesCommandInput = { StackName: stackName };
   try {
     const command = new DescribeStackResourcesCommand(params);
 
-    const res = await cf.send(command);
+    const res = await client.send(command);
 
     if (!res.StackResources) throw new Error("StackResources is not defined");
 
@@ -71,11 +71,11 @@ export async function describeStackResources(
 }
 
 export function listStacks(
+  client: CloudFormationClient,
   statusFilter?: StackStatus[],
 ): AsyncGenerator<StackSummary> {
-  const cf = getCloudFormationClient();
   return yieldAll(async (token?: string | undefined) => {
-    const response = await cf.send(
+    const response = await client.send(
       new ListStacksCommand({
         NextToken: token,
         StackStatusFilter: statusFilter,
@@ -90,26 +90,28 @@ export function listStacks(
   });
 }
 
-export async function deleteStack(stackName: string): Promise<void> {
-  const cf = getCloudFormationClient();
-  await cf.send(new DeleteStackCommand({ StackName: stackName }));
+export async function deleteStack(
+  client: CloudFormationClient,
+  stackName: string,
+): Promise<void> {
+  await client.send(new DeleteStackCommand({ StackName: stackName }));
 }
 
 export async function describeStackEvents(
+  client: CloudFormationClient,
   stackName: string,
 ): Promise<DescribeStackEventsOutput> {
-  const cf = getCloudFormationClient();
-  const res = await cf.send(
+  const res = await client.send(
     new DescribeStackEventsCommand({ StackName: stackName }),
   );
   return res;
 }
 
 export async function describeStack(
+  client: CloudFormationClient,
   stackName: string,
 ): Promise<DescribeStacksCommandOutput> {
-  const cf = getCloudFormationClient();
   const params: DescribeStacksInput = { StackName: stackName };
-  const res = await cf.send(new DescribeStacksCommand(params));
+  const res = await client.send(new DescribeStacksCommand(params));
   return res;
 }
