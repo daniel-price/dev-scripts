@@ -41,3 +41,7 @@ export function pickKeys<T extends Record<string, unknown>, K extends keyof T>(
   }
   return result;
 }
+
+export function assertNever(value: never): never {
+  throw new Error(`Unexpected value: ${value}`);
+}

@@ -1,0 +1,234 @@
+lockfileVersion: "6.0"
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  bun-promptx:
+    specifier: 0.2.0
+    version: 0.2.0
+  copy-paste:
+    specifier: 1.5.3
+    version: 1.5.3
+  csv:
+    specifier: 6.3.6
+    version: 6.3.6
+  date-fns:
+    specifier: 4.1.0
+    version: 4.1.0
+  moize:
+    specifier: 6.1.6
+    version: 6.1.6
+  runtypes:
+    specifier: 6.7.0
+    version: 6.7.0
+  uuid:
+    specifier: 11.1.0
+    version: 11.1.0
+
+devDependencies:
+  "@electric-sql/pglite":
+    specifier: 0.3.3
+    version: 0.3.3
+  "@electric-sql/pglite-socket":
+    specifier: 0.0.8
+    version: 0.0.8(@electric-sql/pglite@0.3.3)
+  "@types/bun":
+    specifier: 1.0.5
+    version: 1.0.5
+  "@types/copy-paste":
+    specifier: 1.1.33
+    version: 1.1.33
+
+packages:
+  /@electric-sql/pglite-socket@0.0.8(@electric-sql/pglite@0.3.3):
+    resolution:
+      {
+        integrity: sha512-37kxepdlqUiCZcHoaZFIe6x6aaFkbYE7fxt2MJKUfB+ppVCOdr2jaw69fC4FtThfmMdDj0u2ls/FQO+fp+m5OA==,
+      }
+    hasBin: true
+    peerDependencies:
+      "@electric-sql/pglite": 0.3.3
+    dependencies:
+      "@electric-sql/pglite": 0.3.3
+    dev: true
+
+  /@electric-sql/pglite@0.3.3:
+    resolution:
+      {
+        integrity: sha512-JrvHOx9q0yvKEby0bK8qzGTVw6K+yEg8enxDWb2IwNKr5XZxRrBb+GNIqoAIP7yXyhRg5jcENWmdHmtnAT87vA==,
+      }
+    dev: true
+
+  /@types/bun@1.0.5:
+    resolution:
+      {
+        integrity: sha512-c14fs5QLLanldcZpX/GjIEKeo++NDzOlixUZ7IUWzN7AoBTisYyWxaxdXNhpAP5I1mPcd92Zagq8sdgTnUXWjg==,
+      }
+    dependencies:
+      bun-types: 1.0.26
+    dev: true
+
+  /@types/copy-paste@1.1.33:
+    resolution:
+      {
+        integrity: sha512-vhDsD3A+WPfme1SW56fZCPvgEQ6ELYC0Jzgomldg+ExpMyQ1xDcIcuzao6O5l43cttbhepo16zz54Y16+GtpKw==,
+      }
+    dev: true
+
+  /@types/node@20.11.30:
+    resolution:
+      {
+        integrity: sha512-dHM6ZxwlmuZaRmUPfv1p+KrdD1Dci04FbdEm/9wEMouFqxYoFl5aMkt0VMAUtYRQDyYvD41WJLukhq/ha3YuTw==,
+      }
+    dependencies:
+      undici-types: 5.26.5
+    dev: true
+
+  /@types/ws@8.5.14:
+    resolution:
+      {
+        integrity: sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw==,
+      }
+    dependencies:
+      "@types/node": 20.11.30
+    dev: true
+
+  /bun-promptx@0.2.0:
+    resolution:
+      {
+        integrity: sha512-eb3i+vBi88pefyme+75If5hSBdXWYu9HYVWiOCUcKBu/AdF9qv/44CNTaxk6STnx4BW4BYzC5/n3msVuCtbmYA==,
+      }
+    dev: false
+
+  /bun-types@1.0.26:
+    resolution:
+      {
+        integrity: sha512-VcSj+SCaWIcMb0uSGIAtr8P92zq9q+unavcQmx27fk6HulCthXHBVrdGuXxAZbFtv7bHVjizRzR2mk9r/U8Nkg==,
+      }
+    dependencies:
+      "@types/node": 20.11.30
+      "@types/ws": 8.5.14
+    dev: true
+
+  /copy-paste@1.5.3:
+    resolution:
+      {
+        integrity: sha512-qOnFo+8l8vemGmdcoCiD7gPTefkXEg2rivYE+EBtuKOj754eFivkGhGAM9e/xqShrpuVE11evSxGnHwVAUK1Iw==,
+      }
+    dependencies:
+      iconv-lite: 0.4.24
+    dev: false
+
+  /csv-generate@4.5.1:
+    resolution:
+      {
+        integrity: sha512-nWVtFBfyK+YX1fHtKkMqzULc6sH5ise6baD64SmYTq3GEDSErVZ5xzyMa0hNP/a9PGJTTTyQTU69xpjcuCx2IA==,
+      }
+    dev: false
+
+  /csv-parse@5.6.0:
+    resolution:
+      {
+        integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==,
+      }
+    dev: false
+
+  /csv-stringify@6.7.0:
+    resolution:
+      {
+        integrity: sha512-UdtziYp5HuTz7e5j8Nvq+a/3HQo+2/aJZ9xntNTpmRRIg/3YYqDVgiS9fvAhtNbnyfbv2ZBe0bqCHqzhE7FqWQ==,
+      }
+    dev: false
+
+  /csv@6.3.6:
+    resolution:
+      {
+        integrity: sha512-jsEsX2HhGp7xiwrJu5srQavKsh+HUJcCi78Ar3m4jlmFKRoTkkMy7ZZPP+LnQChmaztW+uj44oyfMb59daAs/Q==,
+      }
+    engines: { node: ">= 0.1.90" }
+    dependencies:
+      csv-generate: 4.5.1
+      csv-parse: 5.6.0
+      csv-stringify: 6.7.0
+      stream-transform: 3.4.1
+    dev: false
+
+  /date-fns@4.1.0:
+    resolution:
+      {
+        integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==,
+      }
+    dev: false
+
+  /fast-equals@3.0.3:
+    resolution:
+      {
+        integrity: sha512-NCe8qxnZFARSHGztGMZOO/PC1qa5MIFB5Hp66WdzbCRAz8U8US3bx1UTgLS49efBQPcUtO9gf5oVEY8o7y/7Kg==,
+      }
+    dev: false
+
+  /iconv-lite@0.4.24:
+    resolution:
+      {
+        integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==,
+      }
+    engines: { node: ">=0.10.0" }
+    dependencies:
+      safer-buffer: 2.1.2
+    dev: false
+
+  /micro-memoize@4.2.0:
+    resolution:
+      {
+        integrity: sha512-dRxIsNh0XosO9sd3aASUabKOzG9dloLO41g74XUGThpHBoGm1ttakPT5in14CuW/EDedkniaShFHbymmmKGOQA==,
+      }
+    dev: false
+
+  /moize@6.1.6:
+    resolution:
+      {
+        integrity: sha512-vSKdIUO61iCmTqhdoIDrqyrtp87nWZUmBPniNjO0fX49wEYmyDO4lvlnFXiGcaH1JLE/s/9HbiK4LSHsbiUY6Q==,
+      }
+    deprecated: This library has been deprecated in favor of micro-memoize, which as-of version 5 incorporates most of the functionality that this library offers at nearly half the size and better speed.
+    dependencies:
+      fast-equals: 3.0.3
+      micro-memoize: 4.2.0
+    dev: false
+
+  /runtypes@6.7.0:
+    resolution:
+      {
+        integrity: sha512-3TLdfFX8YHNFOhwHrSJza6uxVBmBrEjnNQlNXvXCdItS0Pdskfg5vVXUTWIN+Y23QR09jWpSl99UHkA83m4uWA==,
+      }
+    dev: false
+
+  /safer-buffer@2.1.2:
+    resolution:
+      {
+        integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==,
+      }
+    dev: false
+
+  /stream-transform@3.4.1:
+    resolution:
+      {
+        integrity: sha512-4P7GsGr95QaRsN09ws40kVdaR6VAeeJtprKVQPOnRp9rOuuW8kzONeYbhikCrbg2RSsHqfIJOnAf+RMNZcKOFQ==,
+      }
+    dev: false
+
+  /undici-types@5.26.5:
+    resolution:
+      {
+        integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==,
+      }
+    dev: true
+
+  /uuid@11.1.0:
+    resolution:
+      {
+        integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==,
+      }
+    hasBin: true
+    dev: false

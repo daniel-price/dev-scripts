@@ -1,10 +1,10 @@
-import { InstanceOf, Null, Runtype, Static, Unknown } from "runtypes";
+import * as R from "runtypes";
 import { RuntypeBase } from "runtypes/lib/runtype";
 
 export * from "runtypes";
 export type RunTypeBase = RuntypeBase;
 
-export function assertType<T>(runtype: Runtype<T>, actualData: unknown): T {
+export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
   const result = runtype.validate(actualData);
   const { success } = result;
   if (success) {
@@ -25,9 +25,9 @@ export function assertType<T>(runtype: Runtype<T>, actualData: unknown): T {
 
 export function SetOf<E extends RuntypeBase>(
   element: E,
-): Runtype<Set<Static<typeof element>>> {
-  return InstanceOf(Set).withGuard(
-    (x: Set<unknown>): x is Set<Static<typeof element>> =>
+): R.Runtype<Set<R.Static<typeof element>>> {
+  return R.InstanceOf(Set).withGuard(
+    (x: Set<unknown>): x is Set<R.Static<typeof element>> =>
       [...x].every(element.guard),
   );
 }
@@ -35,15 +35,15 @@ export function SetOf<E extends RuntypeBase>(
 export function MapOf<E extends RuntypeBase, V extends RuntypeBase>(
   key: E,
   value: V,
-): Runtype<Map<Static<typeof key>, Static<typeof value>>> {
-  return InstanceOf(Map).withGuard(
-    (x: Map<unknown, unknown>): x is Map<Static<typeof key>, typeof value> =>
+): R.Runtype<Map<R.Static<typeof key>, R.Static<typeof value>>> {
+  return R.InstanceOf(Map).withGuard(
+    (x: Map<unknown, unknown>): x is Map<R.Static<typeof key>, typeof value> =>
       Object.entries(x).every(([k, v]) => key.guard(k) && value.guard(v)),
   );
 }
 export function runtypeFromEnum<EnumType>(
   enum_: Record<string, EnumType>,
-): Runtype<EnumType> {
+): R.Runtype<EnumType> {
   const values = Object.values<unknown>(enum_);
   const isEnumValue = (input: unknown): input is EnumType =>
     values.includes(input);
@@ -51,13 +51,13 @@ export function runtypeFromEnum<EnumType>(
     `Failed constraint check. Expected one of ${JSON.stringify(
       values,
     )}, but received ${JSON.stringify(input)}`;
-  return Unknown.withConstraint<EnumType>(
+  return R.Unknown.withConstraint<EnumType>(
     (object: unknown) => isEnumValue(object) || errorMessage(object),
   );
 }
 
-export function Nullable<R extends Runtype>(
+export function Nullable<R extends R.Runtype>(
   runtype: R,
-): Runtype<Static<R> | null> {
-  return runtype.Or(Null);
+): R.Runtype<R.Static<R> | null> {
+  return runtype.Or(R.Null);
 }

@@ -31,7 +31,7 @@ export enum Filter {
   BEGINS_WITH = "begins_with",
 }
 
-type A = {
+type FilterExpression = {
   FilterExpression: string;
   ExpressionAttributeValues: Record<string, AttributeValue>;
 };
@@ -44,7 +44,7 @@ export function filterOptions(
   filterType: Filter,
   fieldName: string,
   value: unknown,
-): A {
+): FilterExpression {
   const filterExpression = `${filterType}(${fieldName}, :${fieldName})`;
 
   return {
