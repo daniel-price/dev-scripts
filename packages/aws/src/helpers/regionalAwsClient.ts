@@ -1,15 +1,14 @@
 import { awsProxy } from "./awsProxy";
 
-/** Resolves region from an explicit value or standard AWS environment variables. */
-export function resolveAwsRegion(explicit?: string): string {
-  const r =
-    explicit ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
-  if (!r) {
+export function resolveAwsRegion(optionalRegion?: string): string {
+  const region =
+    optionalRegion ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
+  if (!region) {
     throw new Error(
       "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",
     );
   }
-  return r;
+  return region;
 }
 
 /**
@@ -18,9 +17,15 @@ export function resolveAwsRegion(explicit?: string): string {
  */
 export function regionalAwsClient<T extends object>(
   ClientCtor: new (config: { region: string }) => T,
-): (region: string) => T {
+): (region?: string) => T {
   const byRegion = new Map<string, T>();
-  return (region: string) => {
+  return (optionalRegion?: string) => {
+    const region = optionalRegion ?? process.env.AWS_REGION;
+    if (!region) {
+      throw new Error(
+        "AWS region is required: pass `region` or set AWS_REGION / AWS_DEFAULT_REGION",
+      );
+    }
     const existing = byRegion.get(region);
     if (existing) return existing;
     const client = awsProxy(new ClientCtor({ region }));
