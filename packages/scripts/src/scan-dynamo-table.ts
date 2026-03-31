@@ -18,7 +18,11 @@ export async function main(args: T_Args): Promise<void> {
     args.table,
     R_TableItem,
   );
+
+  let count = 0;
   for await (const item of tableItemsGenerator) {
-    Logger.info("TableItems:", item);
+    Logger.info(item);
+    count++;
   }
+  Logger.info(`Total items: ${count}`);
 }
