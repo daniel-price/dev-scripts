@@ -32,11 +32,17 @@ type WriteOptions = SharedOptions & {
   prefix: string;
 };
 
-function getFilePath(fileName: string, options: WriteOptions): string {
-  const timestamp = options.includeTimestamp
-    ? `${new Date().toISOString()}_`
-    : "";
-  return `${options.directory}${timestamp}${options.prefix}${fileName}`;
+function getAbsoluteFilePath(
+  fileName: string,
+  options: WriteOptions | ReadOptions,
+): string {
+  if ("append" in options) {
+    const timestamp = options.includeTimestamp
+      ? `${new Date().toISOString()}_`
+      : "";
+    return `${options.directory}${timestamp}${options.prefix}${fileName}`;
+  }
+  return `${options.directory}${fileName}`;
 }
 
 function writeFile(
@@ -51,7 +57,7 @@ function writeFile(
     prefix: "",
     ...options,
   };
-  const filePath = getFilePath(fileName, allOptions);
+  const filePath = getAbsoluteFilePath(fileName, allOptions);
 
   if (allOptions.append) {
     fs.appendFileSync(filePath, `${contentString}\n`);
@@ -142,8 +148,16 @@ export function deleteFile(filePath: string): void {
   if (fileExists(filePath)) fs.unlinkSync(filePath);
 }
 
-export function fileExists(filePath: string): boolean {
-  return fs.existsSync(filePath);
+export function fileExists(
+  filePath: string,
+  options: Partial<ReadOptions> = {},
+): boolean {
+  const allOptions: ReadOptions = {
+    directory: E_DIRECTORIES.RESULTS,
+    ...options,
+  };
+  const absoluteFilePath = getAbsoluteFilePath(filePath, allOptions);
+  return fs.existsSync(absoluteFilePath);
 }
 
 export function getFilesRecursively(
