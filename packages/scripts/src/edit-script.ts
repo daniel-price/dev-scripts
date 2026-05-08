@@ -6,7 +6,7 @@ export const R_Args = R.Record({ name: R.String });
 export async function main({ name }: R.Static<typeof R_Args>): Promise<void> {
   const filePath = `packages/scripts/src/${name}.ts`;
 
-  const shouldCreate = FileUtil.fileExists(filePath, {
+  const shouldCreate = !FileUtil.fileExists(filePath, {
     directory: E_DIRECTORIES.DEV_SCRIPTS,
   });
 
@@ -15,9 +15,7 @@ export async function main({ name }: R.Static<typeof R_Args>): Promise<void> {
 
 export const R_Args = R.Record({});
 
-type T_Args = R.Static<typeof R_Args>;
-
-export async function main(args: T_Args): Promise<void> {
+export async function main(args: R.Static<typeof R_Args>): Promise<void> {
   Logger.info("Running ${name} script with args:", args);
 }`;
 
