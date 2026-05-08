@@ -1,4 +1,4 @@
-import { FileUtil, Logger, R } from "@dev/util";
+import { Execute, FileUtil, Logger, R } from "@dev/util";
 import { E_DIRECTORIES } from "@dev/util/src/file";
 
 export const R_Args = R.Record({ name: R.String });
@@ -10,18 +10,12 @@ export async function main(args: T_Args): Promise<void> {
 
   const filePath = `packages/scripts/src/${name}.ts`;
 
-  if (
-    FileUtil.fileExists(filePath, {
-      directory: E_DIRECTORIES.DEV_SCRIPTS,
-    })
-  ) {
-    Logger.error(
-      `File ${filePath} already exists! Please choose a different name.`,
-    );
-    return;
-  }
+  const shouldCreate = FileUtil.fileExists(filePath, {
+    directory: E_DIRECTORIES.DEV_SCRIPTS,
+  });
 
-  const fileContents = `import { Logger, R } from "@dev/util";
+  if (shouldCreate) {
+    const fileContents = `import { Logger, R } from "@dev/util";
 
 export const R_Args = R.Record({});
 
@@ -31,9 +25,12 @@ export async function main(args: T_Args): Promise<void> {
   Logger.info("Running ${name} script with args:", args);
 }`;
 
-  FileUtil.write(filePath, fileContents, {
-    directory: E_DIRECTORIES.DEV_SCRIPTS,
-  });
+    FileUtil.write(filePath, fileContents, {
+      directory: E_DIRECTORIES.DEV_SCRIPTS,
+    });
 
-  Logger.info(`Created new script at ${filePath}`);
+    Logger.info(`Created new script at ${filePath}`);
+  }
+
+  await Execute.openInEditor(filePath);
 }

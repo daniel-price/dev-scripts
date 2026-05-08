@@ -47,7 +47,7 @@ async function updateCode(
   await Http.downloadFile(codeUrl, zipFile);
 
   Logger.info(`cd ${unzippedFolder} && unzip ${zipFile}`);
-  await Execute.exec(`unzip ${zipFile}`, unzippedFolder);
+  await Execute.exec(`unzip ${zipFile}`, { cwd: unzippedFolder });
 
   const unzippedFolderPath = FileUtil.fileExists(`${unzippedFolder}/src`)
     ? `${unzippedFolder}/src`
@@ -56,13 +56,13 @@ async function updateCode(
   const filePath = files.find((f) => f.match(/.*\.mjs$/));
 
   await Execute.exec(`code ${filePath}`);
-  await Execute.exec(`rm -rf .history`, unzippedFolderPath);
+  await Execute.exec(`rm -rf .history`, { cwd: unzippedFolderPath });
 
   if (!(await Prompt.confirm("Do you want to update the code?"))) return;
 
   Logger.info("Zipping new code");
 
-  await Execute.exec(`zip ${newZipFile} -r .`, unzippedFolder);
+  await Execute.exec(`zip ${newZipFile} -r .`, { cwd: unzippedFolder });
 
   Logger.info("Uploading new code");
   await Lambda.updateFunctionCode(lambda, functionName, newZipFile);
