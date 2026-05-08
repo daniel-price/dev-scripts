@@ -6,9 +6,7 @@ export const R_Args = R.Record({
   emptyOnly: R.Optional(R.Boolean),
 });
 
-type T_Args = R.Static<typeof R_Args>;
-
-export async function main(args: T_Args): Promise<void> {
+export async function main(args: R.Static<typeof R_Args>): Promise<void> {
   const { bucketName, emptyOnly } = args;
   const s3 = S3.getS3Client();
   Logger.info(

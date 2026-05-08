@@ -3,11 +3,7 @@ import { E_DIRECTORIES } from "@dev/util/src/file";
 
 export const R_Args = R.Record({ name: R.String });
 
-type T_Args = R.Static<typeof R_Args>;
-
-export async function main(args: T_Args): Promise<void> {
-  const { name } = args;
-
+export async function main({ name }: R.Static<typeof R_Args>): Promise<void> {
   const filePath = `packages/scripts/src/${name}.ts`;
 
   const shouldCreate = FileUtil.fileExists(filePath, {

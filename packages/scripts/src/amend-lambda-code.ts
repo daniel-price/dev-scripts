@@ -15,8 +15,6 @@ export const R_Args = R.Record({
   functionName: R.String,
 });
 
-type T_Args = R.Static<typeof R_Args>;
-
 async function updateCode(
   functionName: string,
   downloadFolder: string,
@@ -113,7 +111,7 @@ async function removeFromRecentlyOpenedFiles(
   );
 }
 
-export async function main(args: T_Args): Promise<void> {
+export async function main(args: R.Static<typeof R_Args>): Promise<void> {
   const { VS_CODE_DB_PATH, DOWNLOAD_FOLDER } = cleanEnv(process.env, {
     VS_CODE_DB_PATH: str({ default: "" }),
     DOWNLOAD_FOLDER: str(),

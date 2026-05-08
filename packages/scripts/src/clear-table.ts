@@ -5,9 +5,7 @@ export const R_Args = R.Record({
   table: R.String,
 });
 
-type T_Args = R.Static<typeof R_Args>;
-
-export async function main(args: T_Args): Promise<void> {
+export async function main(args: R.Static<typeof R_Args>): Promise<void> {
   Logger.info(`Clearing table ${args.table}`);
 
   const dynamoClient = DynamoDB.getDynamoDBClient();

@@ -5,13 +5,11 @@ export const R_Args = R.Record({
   table: R.String,
 });
 
-type T_Args = R.Static<typeof R_Args>;
-
 const R_TableItem = R.Record({
   id: R.String,
 });
 
-export async function main(args: T_Args): Promise<void> {
+export async function main(args: R.Static<typeof R_Args>): Promise<void> {
   const dynamoClient = DynamoDB.getDynamoDBClient();
   const tableItemsGenerator = DynamoDB.scan(
     dynamoClient,
