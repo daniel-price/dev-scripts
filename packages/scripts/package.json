@@ -6,7 +6,8 @@
     "@dev/aws": "0.0.1",
     "@dev/util": "0.0.1",
     "envalid": "8.0.0",
-    "mri": "1.2.0"
+    "mri": "1.2.0",
+    "prettier": "3.0.3"
   },
   "dev-dependencies": {
     "@types/bun": "1.0.5"

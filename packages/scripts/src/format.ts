@@ -1,4 +1,5 @@
 import { Clipboard, Json, Logger } from "@dev/util";
+import prettier from "prettier";
 
 function formatString(str: string): string {
   let res = str;
@@ -22,30 +23,47 @@ function formatString(str: string): string {
   return res;
 }
 
-function formatJson(str: string): string {
+async function formatGraphql(str: string): Promise<string> {
   try {
-    return Json.stringify(JSON.parse(str));
-  } catch (e) {
+    return await prettier.format(str, { parser: "graphql" });
+  } catch {
     return str;
   }
 }
 
-type Formatter = (input: string) => string;
+function formatJson(str: string): string {
+  try {
+    return Json.stringify(JSON.parse(str));
+  } catch {
+    return str;
+  }
+}
+
+type Formatter = (input: string) => string | Promise<string>;
 
 const formatters: Array<{
   predicate?: (input: string) => boolean;
   handler: Formatter;
-}> = [{ handler: formatString }, { handler: formatJson }];
+}> = [
+  { handler: formatString },
+  { handler: formatGraphql },
+  { handler: formatJson },
+];
 
-export async function main(): Promise<void> {
-  const clipboard = Clipboard.get();
-  let res = clipboard;
+export async function formatInput(input: string): Promise<string> {
+  let res = input;
 
   for (const { predicate, handler } of formatters) {
-    if (predicate?.(res)) {
-      res = handler(res);
+    if (!predicate || predicate(res)) {
+      res = await handler(res);
     }
   }
+
+  return res;
+}
+
+export async function main(): Promise<void> {
+  const res = await formatInput(Clipboard.get());
 
   if (!res) {
     Logger.warn("Result is empty, not copying to clipboard");
