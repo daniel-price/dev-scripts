@@ -1,16 +1,21 @@
-import { Logger, Prompt, R } from "@dev/util";
+import { Logger, Prompt } from "@dev/util";
 import fs from "fs";
 import mri from "mri";
 
+import { buildMriOptions, parseArgs, pickSchemaArgs } from "./src/args";
+import { getCleanedEnv } from "./src/env";
+import { formatHelp } from "./src/help";
+import { AnyScriptConfig } from "./src/script";
+
 const scriptsDir = `${__dirname}/src/`;
 
-async function safeImport(file: string): Promise<{
-  main: (args: Record<string, string>) => Promise<void>;
-  help?: () => string;
-  R_Args?: R.Record<{ [_: string]: R.RunTypeBase }, false>;
-} | null> {
+process.on("SIGINT", () => {
+  process.exit();
+});
+
+async function safeImport(file: string): Promise<AnyScriptConfig | null> {
   try {
-    return await import(scriptsDir + file);
+    return (await import(scriptsDir + file)).default;
   } catch (e) {
     if (e instanceof Error && e.message.includes("Cannot find module"))
       return null;
@@ -18,16 +23,13 @@ async function safeImport(file: string): Promise<{
   }
 }
 
-process.on("SIGINT", () => {
-  process.exit();
-});
-
 async function main(): Promise<void> {
+  let scriptName: string | undefined;
+
   try {
     const argv = process.argv.slice(2);
-    const { _, ...args } = mri(argv);
+    const inputScript = mri(argv)._[0];
 
-    const inputScript = _[0];
     const files = fs
       .readdirSync(scriptsDir)
       .filter(
@@ -40,43 +42,37 @@ async function main(): Promise<void> {
       .sort();
 
     const file = inputScript || (await Prompt.select("Select script", files));
+    scriptName = file;
     const script = await safeImport(`./${file.replace(".ts", "")}`);
     if (!script) {
       Logger.error(`${file} is not a valid script`);
       return;
     }
 
-    if (args.help) {
-      const help = script.help ? script.help() : "No help specified";
-      Logger.info(help);
+    const mriOptions = buildMriOptions(script.args ?? {});
+    const { _, ...rawArgs } = mri(argv, mriOptions);
+
+    if (rawArgs.help) {
+      Logger.info(formatHelp(file, script.args ?? {}));
       return;
     }
 
-    if (script.R_Args) {
-      const scriptArgNames = Object.entries(script.R_Args.fields);
-      const requiredArgNames = scriptArgNames
-        .filter(([_, fieldInfo]) => {
-          return (
-            ("tag" in fieldInfo && (fieldInfo.tag as string)) !== "optional"
-          );
-        })
-        .map(([fieldName, _]) => fieldName);
+    const args = pickSchemaArgs(script.args ?? {}, rawArgs);
+    const parsedArgs = await parseArgs(script.args || {}, args);
 
-      for (const requiredField of requiredArgNames) {
-        if (!args[requiredField]) {
-          args[requiredField] = await Prompt.string(`Enter ${requiredField}:`);
-        }
-      }
+    const env = getCleanedEnv(script.env);
 
-      R.assertType(script.R_Args, args);
-    }
-
-    await script.main(args);
+    await script.run(parsedArgs, env);
   } catch (e) {
     if (e instanceof Prompt.PromptCancelledError) {
       return;
     }
-    Logger.error("Error running script", e);
+    Logger.error(
+      scriptName
+        ? `Failed to run script: ${scriptName}`
+        : "Failed to run script",
+      e,
+    );
   }
 }
 

@@ -1,3 +1,4 @@
+import { ScriptExecutionError } from "./errors/app-error";
 import * as Logger from "./logger";
 
 type Options = {
@@ -21,7 +22,7 @@ export async function exec(
   const { stdout, stderr } = res;
   const stderrStr = await new Response(stderr).text();
   if (stderrStr) {
-    throw new Error(stderrStr);
+    throw new ScriptExecutionError("Command failed", stderrStr);
   }
   const stdoutStr = await new Response(stdout).text();
   Logger.debug("Output:", stdoutStr);

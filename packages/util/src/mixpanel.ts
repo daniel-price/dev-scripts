@@ -10,6 +10,33 @@ type ListEventsParams = {
   toDate: Date;
 };
 
+export async function runScript<T>(
+  bearerToken: string,
+  projectId: string,
+  script: string,
+  runtype: R.Runtype<T>,
+): Promise<T[]> {
+  const queryParams: Record<string, string | undefined> = {
+    project_id: projectId,
+  };
+
+  const res = await Http.post(
+    "https://eu.mixpanel.com/api/query/jql",
+    R.Array(runtype),
+    {
+      queryParams,
+      headers: {
+        Accept: "application/json",
+        authorization: `Basic ${bearerToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `script=${encodeURIComponent(script.replace(/[\n\r]/g, ""))}`,
+    },
+  );
+
+  return res;
+}
+
 export async function listEvents<T>(
   bearerToken: string,
   projectId: string,
@@ -22,10 +49,6 @@ export async function listEvents<T>(
     "yyyy-MM-dd",
   );
   const toDate = DateUtil.format(params.toDate || new Date(), "yyyy-MM-dd");
-
-  const queryParams: Record<string, string | undefined> = {
-    project_id: projectId,
-  };
 
   const whereArray = Object.entries(params.whereProperties || {});
   const filterStatement = whereArray.length
@@ -47,21 +70,7 @@ export async function listEvents<T>(
       }
 `;
 
-  const res = await Http.post(
-    "https://eu.mixpanel.com/api/query/jql",
-    R.Array(runtype),
-    {
-      queryParams,
-      headers: {
-        Accept: "application/json",
-        authorization: `Basic ${bearerToken}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `script=${script.replace(/[\n\r]/g, "")}`,
-    },
-  );
-
-  return res as T[];
+  return await runScript(bearerToken, projectId, script, runtype);
 }
 
 export async function listProfile<T>(

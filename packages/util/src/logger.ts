@@ -2,8 +2,22 @@ import moize from "moize";
 import util from "util";
 
 import * as Enum from "./enum";
+import type { AppError } from "./errors/app-error";
+import { logAppError } from "./errors/log-error";
+import * as Terminal from "./terminal";
 
-type T_ExecuteError = { stderr: string };
+export {
+  AppError,
+  formatError,
+  formatErrorHuman,
+  formatErrorJson,
+  isAppError,
+  logError,
+  ScriptExecutionError,
+  UserError,
+  ValidationError,
+} from "./errors";
+export { TypeValidationError } from "./runtypes";
 
 const LOG_LEVELS = {
   DEBUG: 1,
@@ -16,42 +30,32 @@ type LogLevels = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];
 
 util.inspect.defaultOptions.maxArrayLength = null; //prevent "... X more items"
 
-function isExecuteError(e: unknown): e is T_ExecuteError {
-  if (!e) return false;
-  if (typeof e !== "object") return false;
-  return Object.hasOwn(e, "stderr");
+function formatArgs(args: unknown[], stream: NodeJS.WriteStream): string {
+  const colors = Terminal.supportsAnsiColor(stream);
+  return args
+    .map((a) => {
+      if (typeof a === "object" && a !== null) {
+        return util.inspect(a, { depth: null, colors });
+      }
+      return String(a);
+    })
+    .join(" ");
 }
 
-export function error(context: string, e?: unknown): void {
+function writeLog(
+  stream: NodeJS.WriteStream,
+  label: string,
+  formatLabel: (text: string) => string,
+  args: unknown[],
+): void {
+  const message = formatArgs(args, stream);
+  stream.write(`${formatLabel(`[${label}]`)} ${message}\n`);
+}
+
+export function error(context: string | AppError, e?: unknown): void {
   if (!shouldLog(LOG_LEVELS.ERROR)) return;
-  if (!e) {
-    console.error(context); // eslint-disable-line no-console
-    return;
-  }
 
-  if (isExecuteError(e)) {
-    console.error(context, e.stderr); // eslint-disable-line no-console
-    return;
-  }
-
-  if (e instanceof Error) {
-    console.error(context, e, e.cause ?? ""); // eslint-disable-line no-console
-    return;
-  }
-
-  if (typeof e === "object") {
-    console.error(context, e); // eslint-disable-line no-console
-    return;
-  }
-
-  if (typeof e === "string") {
-    console.error(context, e); // eslint-disable-line no-console
-    return;
-  }
-
-  console.error("Logging unknown error type:", typeof e); // eslint-disable-line no-console
-  console.error(context, e); // eslint-disable-line no-console
-  return;
+  logAppError(context, e);
 }
 
 const envLogLevel = moize(() => {
@@ -61,8 +65,12 @@ const envLogLevel = moize(() => {
     return LOG_LEVELS[envLogLevel];
   }
 
-  // eslint-disable-next-line no-console
-  console.error("unknown log level - using INFO", envLogLevel);
+  const stream = process.stderr;
+  stream.write(
+    `${Terminal.yellow("[WARN]", stream)} unknown log level - using INFO ${
+      envLogLevel ?? ""
+    }\n`,
+  );
   return LOG_LEVELS.INFO;
 });
 
@@ -71,29 +79,29 @@ function shouldLog(logLevel: LogLevels): boolean {
   return logLevel >= envLogLevelEnum;
 }
 
-function mapArgs(args: unknown[]): unknown[] {
-  return args.map((a) => {
-    if (typeof a === "object") {
-      return util.inspect(a, { depth: null, colors: true });
-    }
-    return a;
-  });
-}
-
 export function debug(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.DEBUG)) return;
-  // eslint-disable-next-line no-console
-  console.debug("\n", ...mapArgs(args));
+  const stream = process.stderr;
+  const message = formatArgs(args, stream);
+  stream.write(`${Terminal.dim(`[DEBUG] ${message}`, stream)}\n`);
 }
 
 export function warn(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.WARN)) return;
-  // eslint-disable-next-line no-console
-  console.warn("\n", ...mapArgs(args));
+  writeLog(
+    process.stderr,
+    "WARN",
+    (text) => Terminal.yellow(text, process.stderr),
+    args,
+  );
 }
 
 export function info(...args: unknown[]): void {
   if (!shouldLog(LOG_LEVELS.INFO)) return;
-  // eslint-disable-next-line no-console
-  console.info("\n", ...mapArgs(args));
+  writeLog(
+    process.stdout,
+    "INFO",
+    (text) => Terminal.cyan(text, process.stdout),
+    args,
+  );
 }

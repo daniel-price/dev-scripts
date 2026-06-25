@@ -13,6 +13,7 @@ export function awsProxy<T extends object>(obj: T): T {
           async apply(targetMethod, thisArg, argArray) {
             const command = argArray[0].constructor.name;
             const params = argArray[0].input;
+
             Logger.debug(`${target.constructor.name}.send called`, {
               command,
               params,

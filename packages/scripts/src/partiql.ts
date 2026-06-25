@@ -1,18 +1,30 @@
 import { DynamoDB } from "@dev/aws";
 import { Logger, R } from "@dev/util";
 
-const R_MockDentallyApisItem = R.Record({ entity: R.String });
+import { defineScript } from "./script";
 
-export async function main(): Promise<void> {
-  const dynamoClient = DynamoDB.getDynamoDBClient();
-  const updated_results = await DynamoDB.partiql(
-    dynamoClient,
-    `
-SELECT * FROM "danp2-mock-dentally-apis" 
-WHERE _updated = true
+const TABLE = "dentr-apis-verification-live-patient-accounts";
+
+export default defineScript({
+  help: () => {
+    return `This script runs a PartiQL query on the DynamoDB table "${TABLE}".`;
+  },
+  run: async () => {
+    const dynamoClient = DynamoDB.getDynamoDBClient();
+
+    const all = await DynamoDB.partiql(
+      dynamoClient,
+      `
+SELECT attempts_left
+FROM "${TABLE}"
 `,
-    R_MockDentallyApisItem,
-  );
+      R.Record({ attempts_left: R.Number.optional() }),
+    );
 
-  Logger.info(`Found ${updated_results.length} updated results`);
-}
+    const locked = all.filter((item) => item.attempts_left === 0);
+
+    Logger.info(
+      `Locked accounts: ${locked.length}/${locked.length + all.length}`,
+    );
+  },
+});

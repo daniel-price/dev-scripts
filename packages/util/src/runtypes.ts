@@ -1,8 +1,35 @@
 import * as R from "runtypes";
 import { RuntypeBase } from "runtypes/lib/runtype";
 
+import { TypeValidationError } from "./runtypes/type-validation-error";
+import { isObject } from "./util";
+
+export { TypeValidationError } from "./runtypes/type-validation-error";
 export * from "runtypes";
 export type RunTypeBase = RuntypeBase;
+
+export function isOptionalRuntype(type: RuntypeBase): boolean {
+  return isObject(type) && "tag" in type && type.tag === "optional";
+}
+
+export function getRuntypeTag(type: unknown): string | undefined {
+  if (!isObject(type) || !("tag" in type)) return undefined;
+
+  if (
+    type.tag === "optional" &&
+    isObject(type.underlying) &&
+    "tag" in type.underlying &&
+    typeof type.underlying.tag === "string"
+  ) {
+    return type.underlying.tag;
+  }
+
+  return typeof type.tag === "string" ? type.tag : undefined;
+}
+
+export function isBooleanRuntype(type: unknown): boolean {
+  return getRuntypeTag(type) === "boolean";
+}
 
 export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
   const result = runtype.validate(actualData);
@@ -14,12 +41,11 @@ export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
 
   const { details } = result;
 
-  throw new Error("Data does not match expected type", {
-    cause: {
-      actualData,
-      expectedType: runtype.toString(),
-      details: Array.isArray(details) ? details?.filter((d) => d) : details,
-    },
+  throw new TypeValidationError({
+    kind: "validation",
+    expectedType: runtype.toString(),
+    actualData,
+    details,
   });
 }
 

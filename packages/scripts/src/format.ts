@@ -1,5 +1,8 @@
-import { Clipboard, Json, Logger } from "@dev/util";
+import { Clipboard, Json, Logger, R } from "@dev/util";
 import prettier from "prettier";
+
+import { clipboard } from "./args";
+import { defineScript } from "./script";
 
 function formatString(str: string): string {
   let res = str;
@@ -17,7 +20,7 @@ function formatString(str: string): string {
     //replace + from the beginning of each line
     .replaceAll(/^\+/gm, "")
     //copied from SST logging
-    .replaceAll(/\|/g, "")
+    .replaceAll(/^\s*\|/g, "")
     .replaceAll(/\+\d+ms/g, "");
 
   return res;
@@ -62,15 +65,28 @@ export async function formatInput(input: string): Promise<string> {
   return res;
 }
 
-export async function main(): Promise<void> {
-  const res = await formatInput(Clipboard.get());
+export default defineScript({
+  args: {
+    input: {
+      type: R.String,
+      short: "i",
+      description: "The input to format",
+      default: clipboard,
+    },
+  },
+  help: () => {
+    return `This script formats the clipboard content.`;
+  },
+  run: async (args) => {
+    const res = await formatInput(args.input);
 
-  if (!res) {
-    Logger.warn("Result is empty, not copying to clipboard");
-    return;
-  }
+    if (!res) {
+      Logger.warn("Result is empty, not copying to clipboard");
+      return;
+    }
 
-  Logger.info(`Copied to clipboard: 
+    Logger.info(`Copied to clipboard: 
 ${res}`);
-  Clipboard.add(res);
-}
+    Clipboard.add(res);
+  },
+});

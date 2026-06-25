@@ -6,6 +6,19 @@ export * as ChangeItems from "./src/change-items";
 export * as Clipboard from "./src/clipboard";
 export * as DateUtil from "./src/date";
 export * as Enum from "./src/enum";
+export type { AppErrorDetails, AppErrorJson } from "./src/errors";
+export * as ErrorUtil from "./src/errors";
+export {
+  AppError,
+  formatError,
+  formatErrorHuman,
+  formatErrorJson,
+  isAppError,
+  logError,
+  ScriptExecutionError,
+  UserError,
+  ValidationError,
+} from "./src/errors";
 export * as Execute from "./src/execute";
 export * as FileUtil from "./src/file";
 export * as Http from "./src/http";
@@ -14,13 +27,16 @@ export * as Logger from "./src/logger";
 export * as Mixpanel from "./src/mixpanel";
 export * as NewRelic from "./src/new-relic";
 export * as ObjectUtil from "./src/object";
+export * as Paginate from "./src/paginate";
 export * as Prompt from "./src/prompt";
 export * as Random from "./src/random";
 export * from "./src/retry";
+export { TypeValidationError } from "./src/runtypes";
 export * as R from "./src/runtypes";
 export * as SetUtil from "./src/set";
 export * as Sql from "./src/sql";
 export * as SqlLite from "./src/sqllite";
+export * as Terminal from "./src/terminal";
 export type * as Types from "./src/types";
 export * as Util from "./src/util";
 

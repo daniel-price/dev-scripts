@@ -19,10 +19,11 @@ import {
   UpdateItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Async, Logger, R } from "@dev/util";
+import { Async, Logger, Paginate, R, ValidationError } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
+import { isDynamoValidationException } from "../helpers/error";
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getDynamoDBClient = regionalAwsClient(DynamoDBClient);
@@ -121,37 +122,53 @@ export function scan<T>(
   });
 }
 
+async function fetchPartiqlPage<T>(
+  client: DynamoDBClient,
+  statement: string,
+  runtype: R.Runtype<T>,
+  token?: string,
+): Promise<Paginate.Page<T, string>> {
+  let data;
+  try {
+    data = await client.send(
+      new ExecuteStatementCommand({
+        Statement: statement,
+        NextToken: token,
+      }),
+    );
+  } catch (error) {
+    if (!isDynamoValidationException(error)) {
+      throw error;
+    }
+
+    throw new ValidationError(
+      "The partiql statement provided is invalid",
+      { kind: "source", source: statement },
+      { cause: error },
+    );
+  }
+
+  const { Items, NextToken: newToken } = data;
+  if (!Items) throw new Error("No items on partiql result");
+
+  const unmarshalledItems = Items.map((item) => unmarshall(item));
+
+  return {
+    results: R.assertType(R.Array(runtype), unmarshalledItems),
+    nextToken: newToken,
+  };
+}
+
 export async function partiql<T>(
   client: DynamoDBClient,
   statement: string,
   runtype: R.Runtype<T>,
   nextToken?: string,
-  queryNumber = 0,
 ): Promise<T[]> {
-  const params = {
-    Statement: statement,
-    NextToken: nextToken,
-  };
-
-  const data = await client.send(new ExecuteStatementCommand(params));
-  const { Items, NextToken } = data;
-  if (!Items) throw new Error("No items on partiql result");
-
-  const unmarshalledItems = Items.map((i) => unmarshall(i)) as T[];
-  if (NextToken) {
-    const nextData = await partiql(
-      client,
-      statement,
-      runtype,
-      NextToken,
-      queryNumber + 1,
-    );
-    unmarshalledItems.push(...nextData);
-  } else {
-    Logger.info(`No NextToken for queryNumber ${queryNumber}`);
-  }
-
-  return R.assertType(R.Array(runtype), unmarshalledItems);
+  return Paginate.paginate<T, string>(
+    (token) => fetchPartiqlPage(client, statement, runtype, token),
+    nextToken,
+  );
 }
 
 export async function deleteItems(

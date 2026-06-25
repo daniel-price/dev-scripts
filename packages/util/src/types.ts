@@ -11,6 +11,12 @@ export type RequiredFields<T, K extends keyof T> = Prettify<
   }
 >;
 
+export type HasDefault<F> = F extends { default: infer D }
+  ? [D] extends [undefined]
+    ? false
+    : true
+  : false;
+
 export function ensureFieldsSet<T, K extends keyof T>(
   obj: T,
   fields: K[],

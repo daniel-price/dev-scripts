@@ -9,10 +9,44 @@ import {
   R,
   SqlLite,
 } from "@dev/util";
-import { cleanEnv, str } from "envalid";
 
-export const R_Args = R.Record({
-  functionName: R.String,
+import { str } from "./env";
+import { defineScript } from "./script";
+
+export default defineScript({
+  args: {
+    functionName: {
+      type: R.String,
+      description: "Name of the Lambda function to amend.",
+      short: "f",
+    },
+
+    dryRun: {
+      type: R.Boolean.optional(),
+      short: "d",
+      description: "Run without making any changes.",
+      default: false,
+    },
+
+    retries: {
+      type: R.Number.optional(),
+      description: "Number of retry attempts.",
+    },
+  },
+  help: () => {
+    return `This script allows you to amend the code of an AWS Lambda function.`;
+  },
+  env: {
+    VS_CODE_DB_PATH: str({ default: "" }),
+    DOWNLOAD_FOLDER: str(),
+  },
+  run: async (args, env) => {
+    const { functionName } = args;
+    const { VS_CODE_DB_PATH, DOWNLOAD_FOLDER } = env;
+
+    await updateCode(functionName, DOWNLOAD_FOLDER);
+    await removeFromRecentlyOpenedFiles(VS_CODE_DB_PATH, DOWNLOAD_FOLDER);
+  },
 });
 
 async function updateCode(
@@ -51,9 +85,15 @@ async function updateCode(
     ? `${unzippedFolder}/src`
     : unzippedFolder;
   const files = FileUtil.getFilesRecursively(unzippedFolderPath);
-  const filePath = files.find((f) => f.match(/.*\.mjs$/));
+  const filePaths = files.filter((f) => f.match(/.*\.mjs$/));
 
-  await Execute.exec(`code ${filePath}`);
+  if (filePaths.length === 1) {
+    const filePath = filePaths[0];
+
+    await Execute.exec(`code ${filePath}`);
+  } else {
+    await Execute.exec(`code ${unzippedFolderPath}`);
+  }
   await Execute.exec(`rm -rf .history`, { cwd: unzippedFolderPath });
 
   if (!(await Prompt.confirm("Do you want to update the code?"))) return;
@@ -109,14 +149,4 @@ async function removeFromRecentlyOpenedFiles(
     { value: stringifiedResult },
     { key: "history.recentlyOpenedPathsList" },
   );
-}
-
-export async function main(args: R.Static<typeof R_Args>): Promise<void> {
-  const { VS_CODE_DB_PATH, DOWNLOAD_FOLDER } = cleanEnv(process.env, {
-    VS_CODE_DB_PATH: str({ default: "" }),
-    DOWNLOAD_FOLDER: str(),
-  });
-
-  await updateCode(args.functionName, DOWNLOAD_FOLDER);
-  await removeFromRecentlyOpenedFiles(VS_CODE_DB_PATH, DOWNLOAD_FOLDER);
 }

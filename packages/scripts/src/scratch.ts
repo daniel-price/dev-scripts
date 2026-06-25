@@ -1,5 +1,12 @@
 import { Logger } from "@dev/util";
 
-export async function main(): Promise<void> {
-  Logger.info("This is a scratch file for testing purposes.");
-}
+import { defineScript } from "./script";
+
+export default defineScript({
+  help: () => {
+    return `This is a scratch file for testing purposes.`;
+  },
+  run: async () => {
+    Logger.info("This is a scratch file for testing purposes.");
+  },
+});
