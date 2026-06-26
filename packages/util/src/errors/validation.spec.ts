@@ -117,4 +117,23 @@ describe("summarizeValidation", () => {
       "value: Expected string, but was number",
     );
   });
+
+  it("handles deeply nested validation details without overflowing the stack", () => {
+    let details: Record<string, unknown> = { leaf: "deep error" };
+    for (let i = 0; i < 5_000; i++) {
+      details = { [`level${i}`]: details };
+    }
+
+    const summary = summarizeValidation({
+      kind: "validation",
+      expectedType: "Runtype<string>",
+      actualData: 42,
+      details,
+    });
+
+    expect(isValidationArraySummary(summary)).toBe(false);
+    if (isValidationArraySummary(summary)) return;
+
+    expect(summary.detailMessages[0]).toMatch(/level0: .*: deep error$/);
+  });
 });

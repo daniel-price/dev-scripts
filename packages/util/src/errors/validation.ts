@@ -1,3 +1,5 @@
+import util from "util";
+
 import type {
   InvalidItemGroup,
   ValidationArraySummary,
@@ -23,48 +25,77 @@ export function isValidationErrorData(
   );
 }
 
-function detailMessage(detail: unknown): string {
-  if (typeof detail === "string") return detail;
+function collectDetailMessages(
+  detail: unknown,
+  unwrapSingleStringField: boolean,
+): string[] {
+  if (detail == null) return [];
+  if (typeof detail === "string") return [detail];
+  if (typeof detail !== "object") return [String(detail)];
 
-  if (typeof detail === "object" && detail !== null) {
-    const entries = Object.entries(detail).filter(
-      ([, value]) => value !== null && value !== undefined,
-    );
-    if (entries.length === 1 && typeof entries[0][1] === "string") {
-      return entries[0][1];
+  const messages: string[] = [];
+  const stack: Array<{
+    value: unknown;
+    unwrapSingle: boolean;
+    path: string[];
+  }> = [{ value: detail, unwrapSingle: unwrapSingleStringField, path: [] }];
+
+  while (stack.length > 0) {
+    const { value, unwrapSingle, path } = stack.pop()!;
+
+    if (value == null) continue;
+
+    if (typeof value === "string") {
+      messages.push(path.length > 0 ? `${path.join(": ")}: ${value}` : value);
+      continue;
     }
 
-    return entries
-      .flatMap(([key, value]) => {
-        if (typeof value === "string") return [`${key}: ${value}`];
-        return detailMessage(value)
-          .split("; ")
-          .map((message) => `${key}: ${message}`);
-      })
-      .join("; ");
+    if (typeof value !== "object") {
+      const text = String(value);
+      messages.push(path.length > 0 ? `${path.join(": ")}: ${text}` : text);
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      for (let i = value.length - 1; i >= 0; i--) {
+        stack.push({ value: value[i], unwrapSingle, path });
+      }
+      continue;
+    }
+
+    const entries = Object.entries(value).filter(([, v]) => v != null);
+    if (
+      unwrapSingle &&
+      entries.length === 1 &&
+      typeof entries[0][1] === "string"
+    ) {
+      const text = entries[0][1];
+      messages.push(path.length > 0 ? `${path.join(": ")}: ${text}` : text);
+      continue;
+    }
+
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const [key, entryValue] = entries[i];
+      const childPath = [...path, key];
+
+      if (typeof entryValue === "string") {
+        messages.push(`${childPath.join(": ")}: ${entryValue}`);
+        continue;
+      }
+
+      stack.push({ value: entryValue, unwrapSingle, path: childPath });
+    }
   }
 
-  return String(detail);
+  return messages;
+}
+
+function detailMessage(detail: unknown): string {
+  return collectDetailMessages(detail, true).join("; ");
 }
 
 function flattenDetails(details: unknown): string[] {
-  if (details === null || details === undefined) return [];
-
-  if (Array.isArray(details)) {
-    return details.flatMap((detail) => flattenDetails(detail));
-  }
-
-  if (typeof details === "string") return [details];
-
-  if (typeof details === "object") {
-    return Object.entries(details).flatMap(([key, value]) => {
-      if (value === null || value === undefined) return [];
-      if (typeof value === "string") return [`${key}: ${value}`];
-      return flattenDetails(value).map((message) => `${key}: ${message}`);
-    });
-  }
-
-  return [String(details)];
+  return collectDetailMessages(details, false);
 }
 
 function summarizeArrayValidation(
@@ -146,4 +177,72 @@ export function isValidationArraySummary(
   summary: ValidationSummary,
 ): summary is ValidationArraySummary {
   return "groups" in summary;
+}
+
+function inspect(value: unknown): string {
+  return util.inspect(value, {
+    depth: null,
+    colors: false,
+    breakLength: Infinity,
+  });
+}
+
+function formatItem(value: unknown): string {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const inner = Object.entries(value)
+      .map(([key, entryValue]) => `${key}: ${JSON.stringify(entryValue)}`)
+      .join(", ");
+    return `{ ${inner} }`;
+  }
+
+  return inspect(value);
+}
+
+function formatExpectedType(expectedType: string): string {
+  const match = /^Runtype<(.+)>$/s.exec(expectedType);
+  return match?.[1] ?? expectedType;
+}
+
+function formatValidationSummaryHuman(summary: ValidationSummary): string {
+  const lines = [
+    "  Details:",
+    "    Expected:",
+    `      ${formatExpectedType(summary.expectedType)}`,
+  ];
+
+  if (isValidationArraySummary(summary)) {
+    lines.push(
+      "",
+      "    Invalid items:",
+      `      ${summary.invalidCount} / ${summary.totalCount}`,
+    );
+
+    if (summary.groups.length > 0) {
+      const group = summary.groups[0];
+      lines.push("", "    Most common violation:");
+      lines.push(`      ${formatItem(group.item)} × ${group.count}`);
+      lines.push(`      → ${group.message}`);
+
+      const moreGroups = summary.groups.length - 1 + summary.omittedGroupCount;
+      if (moreGroups > 0) {
+        lines.push(`      (+ ${moreGroups} more violation type(s))`);
+      }
+    }
+
+    return lines.join("\n");
+  }
+
+  if (summary.detailMessages.length > 0) {
+    lines.push("", "    Messages:");
+    for (const message of summary.detailMessages) {
+      lines.push(`      ${message}`);
+    }
+  }
+
+  lines.push("", "    Actual:", `      ${inspect(summary.actual)}`);
+  return lines.join("\n");
+}
+
+export function formatValidationHuman(data: ValidationErrorData): string {
+  return formatValidationSummaryHuman(summarizeValidation(data));
 }
