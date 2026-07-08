@@ -16,7 +16,6 @@ export {
   isAppError,
   logError,
   ScriptExecutionError,
-  UserError,
   ValidationError,
 } from "./src/errors";
 export * as Execute from "./src/execute";

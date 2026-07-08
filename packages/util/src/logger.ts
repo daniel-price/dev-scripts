@@ -14,7 +14,6 @@ export {
   isAppError,
   logError,
   ScriptExecutionError,
-  UserError,
   ValidationError,
 } from "./errors";
 export { TypeValidationError } from "./runtypes";

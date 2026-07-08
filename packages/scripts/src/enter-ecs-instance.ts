@@ -42,16 +42,22 @@ export default defineScript({
       throw new Error(`No running ECS tasks found matching "${name}"`);
     }
 
-    const match = await selectTask(matches);
-    const containerName = await selectContainer(match.task, container);
+    const task =
+      matches.length === 1
+        ? matches[0]
+        : await Prompt.select("Select ECS task to enter:", matches, getTaskLabel);
 
-    Logger.info(
-      `Connecting to ${containerName} in ${getTaskLabel(match.task, match.clusterArn)}`,
-    );
+    const containerName = await selectContainer(task, container);
 
-    const taskArn = match.task.taskArn;
+    Logger.info(`Connecting to ${containerName} in ${getTaskLabel(task)}`);
+
+    const taskArn = task.taskArn;
     if (!taskArn) {
       throw new Error("Task ARN is missing");
+    }
+    const clusterArn = task.clusterArn;
+    if (!clusterArn) {
+      throw new Error("Cluster ARN is missing");
     }
 
     await Execute.exec(
@@ -60,7 +66,7 @@ export default defineScript({
         "ecs",
         "execute-command",
         "--cluster",
-        match.clusterArn,
+        clusterArn,
         "--task",
         taskArn,
         "--container",
@@ -75,25 +81,12 @@ export default defineScript({
   },
 });
 
-async function selectTask(matches: ECS.TaskMatch[]): Promise<ECS.TaskMatch> {
-  if (matches.length === 1) {
-    return matches[0];
-  }
-
-  return Prompt.selectItem(
-    "Select ECS task to enter:",
-    matches,
-    (match, index) =>
-      `${index + 1}. ${getTaskLabel(match.task, match.clusterArn)}`,
-  );
-}
-
 async function selectContainer(task: Task, container?: string): Promise<string> {
   const containers = task.containers
     ?.map(({ name }) => name)
     .filter(Util.isNonNil);
 
-  if (!containers || containers.length === 0) {
+  if (!containers?.length) {
     throw new Error(`No containers found for task ${task.taskArn}`);
   }
 
@@ -113,10 +106,11 @@ async function selectContainer(task: Task, container?: string): Promise<string> 
     return containers[0];
   }
 
-  return Prompt.select("Select container to enter:", containers);
+  return await Prompt.select("Select container to enter:", containers);
 }
 
-function getTaskLabel(task: Task, clusterArn: string): string {
+function getTaskLabel(task: Task): string {
+  const clusterArn = task.clusterArn || "unknown-cluster";
   const clusterName = clusterArn.split("/").pop() || clusterArn;
   const taskId = task.taskArn?.split("/").pop() || "unknown-task";
   const family =

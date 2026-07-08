@@ -1,4 +1,5 @@
 import {
+  DescribeTaskDefinitionCommand,
   DescribeTasksCommand,
   ECSClient,
   ListClustersCommand,
@@ -12,6 +13,7 @@ import {
   RunTaskCommandOutput,
   Tag,
   Task,
+  TaskDefinition,
 } from "@aws-sdk/client-ecs";
 import { ArrayUtil, Logger, Util } from "@dev/util";
 
@@ -88,19 +90,29 @@ export async function describeTasks(
   return tasks;
 }
 
-export type TaskMatch = {
-  clusterArn: string;
-  task: Task;
-};
+export async function describeTaskDefinition(
+  client: ECSClient,
+  taskDefinitionArn: string,
+): Promise<TaskDefinition> {
+  const res = await client.send(
+    new DescribeTaskDefinitionCommand({ taskDefinition: taskDefinitionArn }),
+  );
+
+  if (!res.taskDefinition) {
+    throw new Error(`Unable to describe task definition ${taskDefinitionArn}`);
+  }
+
+  return res.taskDefinition;
+}
 
 export async function findMatchingTasks(
   client: ECSClient,
   name: string,
   cluster?: string,
-): Promise<TaskMatch[]> {
+): Promise<Task[]> {
   const clusters = cluster ? [cluster] : await listClusters(client);
   Logger.debug(`Searching for ECS tasks in clusters: ${clusters.join(", ")}`);
-  const matches: TaskMatch[] = [];
+  const matches: Task[] = [];
 
   for (const clusterArn of clusters) {
     Logger.debug(`Searching for ECS tasks in cluster: ${clusterArn}`);
@@ -112,7 +124,7 @@ export async function findMatchingTasks(
 
     for (const task of await describeTasks(client, clusterArn, taskArns)) {
       if (taskMatchesName(task, name)) {
-        matches.push({ clusterArn, task });
+        matches.push(task);
       }
     }
   }

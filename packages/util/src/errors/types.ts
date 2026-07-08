@@ -26,15 +26,6 @@ export type AppErrorDetails =
   | SourceErrorData
   | UnknownErrorData;
 
-/** @deprecated Use AppErrorDetails */
-export type RawErrorData = AppErrorDetails;
-
-/** @deprecated Use AppErrorDetails */
-export type ErrorData = AppErrorDetails;
-
-/** @deprecated Use AppErrorDetails */
-export type UserErrorData = AppErrorDetails;
-
 export type InvalidItemGroup = {
   item: unknown;
   count: number;

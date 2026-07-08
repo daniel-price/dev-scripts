@@ -1,11 +1,14 @@
 import { createPrompt, createSelection, SelectionItem } from "bun-promptx";
 
-type SelectableItem = SelectionItem | string;
-
 export class PromptCancelledError extends Error {}
 
+type LabelFn<T> = (choice: T, index: number) => string;
+type SelectOptions<T> = [T] extends [string | SelectionItem]
+  ? [labelFn?: LabelFn<T>]
+  : [labelFn: LabelFn<T>];
+
 export async function confirm(message: string): Promise<boolean> {
-  const result = await select(message, [{ text: "Yes" }, { text: "No" }]);
+  const result = await select(message, ["Yes", "No"]);
   return result === "Yes";
 }
 
@@ -19,32 +22,15 @@ export async function string(message: string): Promise<string> {
   return value;
 }
 
-export async function select(
-  message: string,
-  choices: SelectableItem[],
-  footerText?: string,
-): Promise<string> {
-  const selectionItems = choices.map((choice) =>
-    typeof choice === "string" ? { text: choice } : choice,
-  );
-  const selectedIndex = promptSelection(message, selectionItems, footerText);
-  const result = selectionItems[selectedIndex];
-
-  if (!result) throw new Error(`No result for selected index ${selectedIndex}`);
-
-  return result.text;
-}
-
-export async function selectItem<T>(
+export async function select<T>(
   message: string,
   choices: T[],
-  labelFn: (choice: T, index: number) => string,
-  footerText?: string,
+  ...[labelFn = defaultLabel as LabelFn<T>]: SelectOptions<T>
 ): Promise<T> {
   const selectionItems = choices.map((choice, index) => ({
     text: labelFn(choice, index),
   }));
-  const selectedIndex = promptSelection(message, selectionItems, footerText);
+  const selectedIndex = promptSelection(message, selectionItems);
 
   if (selectedIndex < 0 || selectedIndex >= choices.length) {
     throw new Error(`No result for selected index ${selectedIndex}`);
@@ -56,16 +42,24 @@ export async function selectItem<T>(
 function promptSelection(
   message: string,
   selectionItems: SelectionItem[],
-  footerText?: string,
 ): number {
   const { selectedIndex, error } = createSelection(selectionItems, {
     headerText: message,
     perPage: 100,
-    footerText,
   });
   if (error === "Cancelled") throw new PromptCancelledError();
   if (error) throw new Error(error);
   if (selectedIndex === null) throw new Error("No index");
 
   return selectedIndex;
+}
+
+function defaultLabel(choice: unknown): string {
+  if (typeof choice === "string") return choice;
+  if (isSelectionItem(choice)) return choice.text;
+  return String(choice);
+}
+
+function isSelectionItem(choice: unknown): choice is SelectionItem {
+  return typeof choice === "object" && choice !== null && "text" in choice;
 }

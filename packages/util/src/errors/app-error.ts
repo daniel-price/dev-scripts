@@ -138,25 +138,3 @@ export class ScriptExecutionError extends AppError {
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
-
-/** @deprecated Use AppError with `details` instead of `data` */
-export class UserError extends AppError {
-  constructor(
-    message: string,
-    options?: {
-      cause?: unknown;
-      data?: AppErrorDetails;
-      details?: AppErrorDetails;
-    },
-  ) {
-    super(message, {
-      details: options?.details ?? options?.data,
-      cause: options?.cause,
-    });
-    this.name = "UserError";
-  }
-
-  get data(): AppErrorDetails | undefined {
-    return this.details;
-  }
-}
