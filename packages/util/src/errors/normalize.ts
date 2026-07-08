@@ -1,4 +1,4 @@
-import { AppError, isAppError } from "./app-error";
+import { AppError, isAppError, SourceValidationError } from "./app-error";
 import type {
   AppErrorDetails,
   LoggedError,
@@ -44,7 +44,6 @@ function normalizeRawErrorData(
     case "validation":
       return summarizeValidation(value);
     case "execute":
-    case "source":
     case "unknown":
       return value;
   }
@@ -63,7 +62,12 @@ function normalizeAppError(
     context,
     message: error.message,
     name: error.name,
-    data: error.details ? normalizeRawErrorData(error.details) : undefined,
+    data:
+      error instanceof SourceValidationError
+        ? { kind: "source", source: error.source }
+        : error.details
+        ? normalizeRawErrorData(error.details)
+        : undefined,
     humanReadableDetails: error.humanReadableDetails,
     humanReadableDetailsBlock: error.humanReadableDetailsBlock,
     stack: parseErrorStack(error),

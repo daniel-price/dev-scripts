@@ -1,5 +1,4 @@
 import * as Terminal from "../terminal";
-import type { SourceErrorData } from "./types";
 
 function parseSourceErrorMessage(message: string): {
   location?: Terminal.SourceErrorLocation;
@@ -16,10 +15,10 @@ function parseSourceErrorMessage(message: string): {
 }
 
 export function formatSourceDetails(
-  details: SourceErrorData,
+  sourceText: string,
   causeMessage?: string,
 ): string {
-  const source = details.source.trimEnd();
+  const source = sourceText.trimEnd();
   if (causeMessage === undefined) return source;
 
   const parsed = parseSourceErrorMessage(causeMessage);

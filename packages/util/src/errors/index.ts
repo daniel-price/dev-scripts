@@ -6,6 +6,7 @@ export {
   AppError,
   isAppError,
   ScriptExecutionError,
+  SourceValidationError,
   ValidationError,
 } from "./app-error";
 export {

@@ -1,14 +1,7 @@
 import * as Logger from "./logger";
 import * as R from "./runtypes";
 
-export function stringify(
-  obj:
-    | Record<string, unknown>
-    | Array<Record<string, unknown> | string>
-    | string
-    | Map<string, unknown>,
-  prettyPrint = true,
-): string {
+export function stringify(obj: string | object, prettyPrint = true): string {
   try {
     if (typeof obj === "string") return obj;
     if (prettyPrint) return JSON.stringify(obj, replacer, 2);

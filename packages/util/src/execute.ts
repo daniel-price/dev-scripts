@@ -1,6 +1,6 @@
-import { Prompt } from "..";
 import { ScriptExecutionError } from "./errors/app-error";
 import * as Logger from "./logger";
+import * as Prompt from "./prompt";
 
 type Options = {
   cwd?: string;

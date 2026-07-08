@@ -1,4 +1,3 @@
-import { Json } from "../..";
 import { formatError } from "./formatters";
 import { normalizeLoggedError } from "./normalize";
 
@@ -13,7 +12,7 @@ export function logAppError(
 ): void {
   process.stderr.write(
     `${formatError(error, context as string)}\n${
-      data ? Json.stringify(data) : ""
+      data ? JSON.stringify(data, undefined, 2) : ""
     }\n`,
   );
 }

@@ -10,11 +10,6 @@ export type ExecuteErrorData = {
   stderr: string;
 };
 
-export type SourceErrorData = {
-  kind: "source";
-  source: string;
-};
-
 export type UnknownErrorData = {
   kind: "unknown";
   value: unknown;
@@ -23,7 +18,6 @@ export type UnknownErrorData = {
 export type AppErrorDetails =
   | ValidationErrorData
   | ExecuteErrorData
-  | SourceErrorData
   | UnknownErrorData;
 
 export type InvalidItemGroup = {
@@ -52,10 +46,15 @@ export type ValidationSummary =
   | ValidationArraySummary
   | ValidationFallbackSummary;
 
+export type SourceLogData = {
+  kind: "source";
+  source: string;
+};
+
 export type NormalizedErrorData =
   | ValidationSummary
   | ExecuteErrorData
-  | SourceErrorData
+  | SourceLogData
   | UnknownErrorData;
 
 export type LoggedError = {

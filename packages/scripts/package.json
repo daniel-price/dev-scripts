@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
+    "@aws-sdk/client-ecs": "^3.946.0",
     "@dev/aws": "0.0.1",
     "@dev/util": "0.0.1",
     "envalid": "8.0.0",

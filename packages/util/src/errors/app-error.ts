@@ -31,20 +31,13 @@ function getCauseMessage(cause: unknown): string | undefined {
   return cause instanceof Error ? cause.message : undefined;
 }
 
-function humanReadableDetailsFor(
-  details: AppErrorDetails,
-  cause?: unknown,
-): { text: string; block: boolean } {
-  const causeMessage = getCauseMessage(cause);
-
+function humanReadableDetailsFor(details: AppErrorDetails): {
+  text: string;
+  block: boolean;
+} {
   switch (details.kind) {
     case "execute":
       return { text: details.stderr, block: false };
-    case "source":
-      return {
-        text: formatSourceDetails(details, causeMessage),
-        block: true,
-      };
     case "unknown":
       return {
         text:
@@ -87,7 +80,7 @@ export class AppError extends Error {
       this.humanReadableDetailsBlock =
         options.humanReadableDetailsBlock ?? false;
     } else if (options?.details) {
-      const rendered = humanReadableDetailsFor(options.details, options.cause);
+      const rendered = humanReadableDetailsFor(options.details);
       this.humanReadableDetails = rendered.text;
       this.humanReadableDetailsBlock = rendered.block;
     } else {
@@ -118,6 +111,23 @@ export class ValidationError extends AppError {
       cause: options?.cause,
     });
     this.name = "ValidationError";
+  }
+}
+
+export class SourceValidationError extends AppError {
+  readonly source: string;
+
+  constructor(message: string, source: string, options?: { cause?: unknown }) {
+    super(message, {
+      humanReadableDetails: formatSourceDetails(
+        source,
+        getCauseMessage(options?.cause),
+      ),
+      humanReadableDetailsBlock: true,
+      cause: options?.cause,
+    });
+    this.name = "SourceValidationError";
+    this.source = source;
   }
 }
 

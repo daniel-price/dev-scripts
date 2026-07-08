@@ -61,7 +61,7 @@ describe("PrettyErrorFormatter", () => {
     const output = prettyErrorFormatter.format({
       context: "Failed to run script: partiql.ts",
       message: "The partiql statement provided is invalid",
-      name: "ValidationError",
+      name: "SourceValidationError",
       data: { kind: "source", source: "SELECT *\nFROM items" },
       humanReadableDetails: [
         "1 | SELECT *",

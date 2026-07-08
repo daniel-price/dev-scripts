@@ -19,7 +19,7 @@ import {
   UpdateItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Async, Logger, Paginate, R, ValidationError } from "@dev/util";
+import { Async, Logger, Paginate, R, SourceValidationError } from "@dev/util";
 import { confirmChangeItems } from "@dev/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
@@ -141,9 +141,9 @@ async function fetchPartiqlPage<T>(
       throw error;
     }
 
-    throw new ValidationError(
+    throw new SourceValidationError(
       "The partiql statement provided is invalid",
-      { kind: "source", source: statement },
+      statement,
       { cause: error },
     );
   }

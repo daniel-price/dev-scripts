@@ -10,7 +10,7 @@ describe("formatSourceDetails", () => {
     ].join("\n");
     const causeMessage = "Unexpected path component ('+') at line 1, column 9";
 
-    expect(formatSourceDetails({ kind: "source", source }, causeMessage)).toBe(
+    expect(formatSourceDetails(source, causeMessage)).toBe(
       [
         "1 | SELECT O+C",
         "  |         ^",
@@ -22,8 +22,8 @@ describe("formatSourceDetails", () => {
   it("supports legacy at line:column error messages", () => {
     const source = "SELECT *\nFROM items";
 
-    expect(
-      formatSourceDetails({ kind: "source", source }, "Syntax error at 2:5"),
-    ).toBe(["1 | SELECT *", "2 | FROM items", "  |     ^"].join("\n"));
+    expect(formatSourceDetails(source, "Syntax error at 2:5")).toBe(
+      ["1 | SELECT *", "2 | FROM items", "  |     ^"].join("\n"),
+    );
   });
 });

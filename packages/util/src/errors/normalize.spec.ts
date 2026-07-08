@@ -1,7 +1,11 @@
 import { describe, expect, it } from "bun:test";
 
 import { TypeValidationError } from "../runtypes";
-import { ScriptExecutionError, ValidationError } from "./app-error";
+import {
+  ScriptExecutionError,
+  SourceValidationError,
+  ValidationError,
+} from "./app-error";
 import { getErrorMessage, normalizeLoggedError } from "./normalize";
 import { isValidationArraySummary } from "./validation";
 
@@ -76,17 +80,18 @@ describe("normalizeLoggedError", () => {
     expect(logged.cause).toBeUndefined();
   });
 
-  it("normalizes ValidationError with source data and nested cause", () => {
+  it("normalizes SourceValidationError with source data and nested cause", () => {
     const awsError = new Error("Syntax error at 2:5");
-    const error = new ValidationError(
+    const error = new SourceValidationError(
       "The partiql statement provided is invalid",
-      { kind: "source", source: "SELECT *\nFROM items" },
+      "SELECT *\nFROM items",
       { cause: awsError },
     );
 
     const logged = normalizeLoggedError("Error running script", error);
 
     expect(logged.message).toBe("The partiql statement provided is invalid");
+    expect(logged.name).toBe("SourceValidationError");
     expect(logged.humanReadableDetails).toContain("1 | SELECT *");
     expect(logged.humanReadableDetails).not.toContain("Error:");
     expect(logged.humanReadableDetailsBlock).toBe(true);
