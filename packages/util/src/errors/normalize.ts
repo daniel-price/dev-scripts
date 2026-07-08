@@ -19,9 +19,7 @@ function normalizeError(
   error: Error,
 ): LoggedError {
   const cause =
-    error.cause !== undefined
-      ? normalizeLoggedError(undefined, error.cause)
-      : undefined;
+    error.cause !== undefined ? normalizeCause(error.cause) : undefined;
 
   return {
     context,
@@ -54,26 +52,29 @@ function normalizeUnknownThrownValue(
   };
 }
 
-export function normalizeLoggedError(
-  context: string | Error | undefined,
-  error?: unknown,
-): LoggedError {
-  if (context instanceof Error && error === undefined) {
-    return normalizeError(undefined, context);
+function normalizeCause(cause: unknown): LoggedError {
+  if (cause instanceof Error) {
+    return normalizeError(undefined, cause);
   }
 
-  const contextText = typeof context === "string" ? context : undefined;
+  return normalizeUnknownThrownValue(undefined, cause);
+}
 
+export function normalizeLoggedError(
+  context: string,
+  error: unknown,
+): LoggedError {
   if (error === undefined) {
     return {
-      message: contextText ?? "Unknown error",
+      context,
+      message: context,
       name: "Error",
     };
   }
 
   if (error instanceof Error) {
-    return normalizeError(contextText, error);
+    return normalizeError(context, error);
   }
 
-  return normalizeUnknownThrownValue(contextText, error);
+  return normalizeUnknownThrownValue(context, error);
 }

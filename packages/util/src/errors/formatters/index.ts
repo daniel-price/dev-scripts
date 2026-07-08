@@ -3,12 +3,22 @@ import { normalizeLoggedError } from "../normalize";
 import { jsonErrorFormatter } from "./json";
 import { prettyErrorFormatter } from "./pretty";
 
+function defaultContext(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "Unknown error";
+}
+
 export function formatErrorHuman(error: unknown, context?: string): string {
-  return prettyErrorFormatter.format(normalizeLoggedError(context, error));
+  return prettyErrorFormatter.format(
+    normalizeLoggedError(context ?? defaultContext(error), error),
+  );
 }
 
 export function formatErrorJson(error: unknown, context?: string): string {
-  return jsonErrorFormatter.format(normalizeLoggedError(context, error));
+  return jsonErrorFormatter.format(
+    normalizeLoggedError(context ?? defaultContext(error), error),
+  );
 }
 
 function useJsonFormat(): boolean {

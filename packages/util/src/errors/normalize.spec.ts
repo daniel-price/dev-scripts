@@ -7,7 +7,8 @@ import { isValidationArraySummary } from "./validation";
 
 describe("normalizeLoggedError", () => {
   it("normalizes context-only errors", () => {
-    expect(normalizeLoggedError("something failed")).toEqual({
+    expect(normalizeLoggedError("something failed", undefined)).toEqual({
+      context: "something failed",
       message: "something failed",
       name: "Error",
     });
@@ -109,10 +110,11 @@ describe("normalizeLoggedError", () => {
     });
   });
 
-  it("normalizes Error passed as sole argument", () => {
+  it("normalizes Error with required context", () => {
     const error = new Error("bad input");
 
-    expect(normalizeLoggedError(error).message).toBe("bad input");
-    expect(normalizeLoggedError(error).name).toBe("Error");
+    expect(normalizeLoggedError("Failed", error).context).toBe("Failed");
+    expect(normalizeLoggedError("Failed", error).message).toBe("bad input");
+    expect(normalizeLoggedError("Failed", error).name).toBe("Error");
   });
 });
