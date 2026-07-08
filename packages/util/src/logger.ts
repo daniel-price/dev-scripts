@@ -2,7 +2,6 @@ import moize from "moize";
 import util from "util";
 
 import * as Enum from "./enum";
-import type { AppError } from "./errors/app-error";
 import { logAppError } from "./errors/log-error";
 import * as Terminal from "./terminal";
 
@@ -53,7 +52,7 @@ function writeLog(
 }
 
 export function error(
-  context: string | AppError,
+  context: string,
   e?: unknown,
   data?: Record<string, unknown>,
 ): void {
