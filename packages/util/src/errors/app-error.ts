@@ -1,10 +1,10 @@
 import { formatSourceDetails } from "./source-human";
-import type { AppErrorDetails } from "./types";
+import type { ValidationErrorData } from "./types";
 
 export type AppErrorJson = {
   name: string;
   message: string;
-  details?: AppErrorDetails;
+  details?: ValidationErrorData;
   humanReadableDetails?: string;
   stack?: string;
   cause?: unknown;
@@ -31,41 +31,15 @@ function getCauseMessage(cause: unknown): string | undefined {
   return cause instanceof Error ? cause.message : undefined;
 }
 
-function humanReadableDetailsFor(details: AppErrorDetails): {
-  text: string;
-  block: boolean;
-} {
-  switch (details.kind) {
-    case "execute":
-      return { text: details.stderr, block: false };
-    case "unknown":
-      return {
-        text:
-          typeof details.value === "string"
-            ? details.value
-            : JSON.stringify(details.value),
-        block: false,
-      };
-    case "validation":
-      throw new Error(
-        "Validation details require a domain error such as TypeValidationError",
-      );
-    default: {
-      const _exhaustive: never = details;
-      return { text: String(_exhaustive), block: false };
-    }
-  }
-}
-
 export class AppError extends Error {
-  readonly details?: AppErrorDetails;
+  readonly details?: ValidationErrorData;
   readonly humanReadableDetails?: string;
   readonly humanReadableDetailsBlock: boolean;
 
   constructor(
     message: string,
     options?: {
-      details?: AppErrorDetails;
+      details?: ValidationErrorData;
       humanReadableDetails?: string;
       humanReadableDetailsBlock?: boolean;
       cause?: unknown;
@@ -79,10 +53,6 @@ export class AppError extends Error {
       this.humanReadableDetails = options.humanReadableDetails;
       this.humanReadableDetailsBlock =
         options.humanReadableDetailsBlock ?? false;
-    } else if (options?.details) {
-      const rendered = humanReadableDetailsFor(options.details);
-      this.humanReadableDetails = rendered.text;
-      this.humanReadableDetailsBlock = rendered.block;
     } else {
       this.humanReadableDetailsBlock = false;
     }
@@ -101,15 +71,8 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(
-    message: string,
-    details: Exclude<AppErrorDetails, { kind: "validation" }>,
-    options?: { cause?: unknown },
-  ) {
-    super(message, {
-      details,
-      cause: options?.cause,
-    });
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, { cause: options?.cause });
     this.name = "ValidationError";
   }
 }
@@ -132,15 +95,16 @@ export class SourceValidationError extends AppError {
 }
 
 export class ScriptExecutionError extends AppError {
+  readonly stderr: string;
   override readonly humanReadableDetails: string;
 
   constructor(message: string, stderr: string, options?: { cause?: unknown }) {
     super(message, {
-      details: { kind: "execute", stderr },
       humanReadableDetails: stderr,
       cause: options?.cause,
     });
     this.name = "ScriptExecutionError";
+    this.stderr = stderr;
     this.humanReadableDetails = stderr;
   }
 }

@@ -10,15 +10,23 @@ describe("AppError", () => {
   it("serializes structured fields with toJSON", () => {
     const cause = new Error("underlying");
     const error = new AppError("failed", {
-      details: { kind: "unknown", value: "x" },
+      details: {
+        kind: "validation",
+        expectedType: "Runtype<number>",
+        actualData: "x",
+      },
       cause,
     });
 
     expect(error.toJSON()).toEqual({
       name: "AppError",
       message: "failed",
-      details: { kind: "unknown", value: "x" },
-      humanReadableDetails: "x",
+      details: {
+        kind: "validation",
+        expectedType: "Runtype<number>",
+        actualData: "x",
+      },
+      humanReadableDetails: undefined,
       stack: error.stack,
       cause: {
         name: "Error",
@@ -31,17 +39,15 @@ describe("AppError", () => {
 });
 
 describe("ScriptExecutionError", () => {
-  it("stores stderr in execute details and human details", () => {
+  it("stores stderr directly and as human details", () => {
     const error = new ScriptExecutionError(
       "Command failed",
       "permission denied",
     );
 
     expect(error).toBeInstanceOf(ScriptExecutionError);
-    expect(error.details).toEqual({
-      kind: "execute",
-      stderr: "permission denied",
-    });
+    expect(error.details).toBeUndefined();
+    expect(error.stderr).toBe("permission denied");
     expect(error.humanReadableDetails).toBe("permission denied");
   });
 });

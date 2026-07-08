@@ -1,27 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
 import { TypeValidationError } from "../runtypes";
-import {
-  ScriptExecutionError,
-  SourceValidationError,
-  ValidationError,
-} from "./app-error";
-import { getErrorMessage, normalizeLoggedError } from "./normalize";
+import { ScriptExecutionError, SourceValidationError } from "./app-error";
+import { normalizeLoggedError } from "./normalize";
 import { isValidationArraySummary } from "./validation";
-
-describe("getErrorMessage", () => {
-  it("reads message from Error instances", () => {
-    expect(getErrorMessage(new Error("boom"))).toBe("boom");
-  });
-
-  it("reads message from plain objects", () => {
-    expect(getErrorMessage({ message: "plain" })).toBe("plain");
-  });
-
-  it("returns undefined for non-errors", () => {
-    expect(getErrorMessage(42)).toBeUndefined();
-  });
-});
 
 describe("normalizeLoggedError", () => {
   it("normalizes context-only errors", () => {
@@ -45,24 +27,24 @@ describe("normalizeLoggedError", () => {
     expect(logged.message).toBe("Data does not match expected type");
     expect(error).toBeInstanceOf(TypeValidationError);
     expect(logged.name).toBe("TypeValidationError");
-    expect(logged.data?.kind).toBe("validation");
+    expect(logged.validation?.kind).toBe("validation");
     expect(logged.humanReadableDetails).toContain("Expected:");
     expect(logged.humanReadableDetailsBlock).toBe(true);
 
     if (
-      logged.data?.kind !== "validation" ||
-      !isValidationArraySummary(logged.data)
+      logged.validation?.kind !== "validation" ||
+      !isValidationArraySummary(logged.validation)
     ) {
       throw new Error("expected array validation summary");
     }
 
-    expect(logged.data.invalidCount).toBe(1);
-    expect(logged.data.totalCount).toBe(2);
-    expect(logged.data.groups[0]?.count).toBe(1);
+    expect(logged.validation.invalidCount).toBe(1);
+    expect(logged.validation.totalCount).toBe(2);
+    expect(logged.validation.groups[0]?.count).toBe(1);
     expect(logged.stack?.[0]).toMatch(/^at /);
   });
 
-  it("summarizes validation causes on plain errors", () => {
+  it("normalizes non-error causes without interpreting tagged data", () => {
     const error = new Error("Data does not match expected type", {
       cause: {
         kind: "validation",
@@ -76,8 +58,14 @@ describe("normalizeLoggedError", () => {
 
     expect(logged.context).toBe("Error running script");
     expect(logged.message).toBe("Data does not match expected type");
-    expect(logged.data?.kind).toBe("validation");
-    expect(logged.cause).toBeUndefined();
+    expect(logged.validation).toBeUndefined();
+    expect(logged.cause?.name).toBe("NonErrorThrown");
+    expect(logged.cause?.unknownValue).toEqual({
+      kind: "validation",
+      expectedType: "Runtype<number>",
+      actualData: ["a", "b"],
+      details: ["Expected number, but was string", null],
+    });
   });
 
   it("normalizes SourceValidationError with source data and nested cause", () => {
@@ -95,10 +83,7 @@ describe("normalizeLoggedError", () => {
     expect(logged.humanReadableDetails).toContain("1 | SELECT *");
     expect(logged.humanReadableDetails).not.toContain("Error:");
     expect(logged.humanReadableDetailsBlock).toBe(true);
-    expect(logged.data).toEqual({
-      kind: "source",
-      source: "SELECT *\nFROM items",
-    });
+    expect(logged.source).toBe("SELECT *\nFROM items");
     expect(logged.cause?.message).toBe("Syntax error at 2:5");
   });
 
@@ -112,32 +97,22 @@ describe("normalizeLoggedError", () => {
 
     expect(error).toBeInstanceOf(ScriptExecutionError);
     expect(logged.name).toBe("ScriptExecutionError");
-    expect(logged.data).toEqual({
-      kind: "execute",
-      stderr: "permission denied",
-    });
+    expect(logged.stderr).toBe("permission denied");
     expect(logged.humanReadableDetails).toBe("permission denied");
   });
 
   it("normalizes string and unknown errors", () => {
-    expect(normalizeLoggedError("ctx", "detail").data).toEqual({
-      kind: "unknown",
-      value: "detail",
-    });
+    expect(normalizeLoggedError("ctx", "detail").unknownValue).toBe("detail");
 
-    expect(normalizeLoggedError("ctx", { foo: "bar" }).data).toEqual({
-      kind: "unknown",
-      value: { foo: "bar" },
+    expect(normalizeLoggedError("ctx", { foo: "bar" }).unknownValue).toEqual({
+      foo: "bar",
     });
   });
 
-  it("normalizes AppError passed as sole argument", () => {
-    const error = new ValidationError("bad input", {
-      kind: "unknown",
-      value: "x",
-    });
+  it("normalizes Error passed as sole argument", () => {
+    const error = new Error("bad input");
 
     expect(normalizeLoggedError(error).message).toBe("bad input");
-    expect(normalizeLoggedError(error).name).toBe("ValidationError");
+    expect(normalizeLoggedError(error).name).toBe("Error");
   });
 });

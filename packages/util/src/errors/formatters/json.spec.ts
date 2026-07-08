@@ -26,7 +26,7 @@ describe("JsonErrorFormatter", () => {
       context: "Error running script",
       message: "Data does not match expected type",
       name: "TypeValidationError",
-      data: {
+      validation: {
         kind: "validation",
         expectedType: "Runtype<number>",
         invalidCount: 1,
@@ -47,14 +47,14 @@ describe("JsonErrorFormatter", () => {
       level: string;
       context: string;
       name: string;
-      data: { invalidCount: number; groups: unknown[] };
+      validation: { invalidCount: number; groups: unknown[] };
     };
 
     expect(parsed.level).toBe("error");
     expect(parsed.context).toBe("Error running script");
     expect(parsed.name).toBe("TypeValidationError");
-    expect(parsed.data.invalidCount).toBe(1);
-    expect(parsed.data.groups).toHaveLength(1);
+    expect(parsed.validation.invalidCount).toBe(1);
+    expect(parsed.validation.groups).toHaveLength(1);
     expect(output).not.toContain("actualData");
   });
 });

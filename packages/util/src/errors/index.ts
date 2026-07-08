@@ -19,11 +19,7 @@ export {
   prettyErrorFormatter,
 } from "./formatters";
 export { logAppError, logError } from "./log-error";
-export {
-  getErrorMessage,
-  isValidationErrorData,
-  normalizeLoggedError,
-} from "./normalize";
+export { normalizeLoggedError } from "./normalize";
 export * from "./types";
 export * from "./validation";
 

@@ -6,7 +6,7 @@ export * as ChangeItems from "./src/change-items";
 export * as Clipboard from "./src/clipboard";
 export * as DateUtil from "./src/date";
 export * as Enum from "./src/enum";
-export type { AppErrorDetails, AppErrorJson } from "./src/errors";
+export type { AppErrorJson } from "./src/errors";
 export * as ErrorUtil from "./src/errors";
 export {
   AppError,
