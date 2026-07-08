@@ -1,22 +1,31 @@
+import { Prompt } from "..";
 import { ScriptExecutionError } from "./errors/app-error";
 import * as Logger from "./logger";
 
 type Options = {
   cwd?: string;
   sync?: boolean;
+  prompt?: boolean;
 };
 
 export async function exec(
   command: string | string[],
   options: Options = {},
 ): Promise<string> {
-  const { cwd, sync } = options;
+  const { cwd, sync, prompt } = options;
   const splitCommand = Array.isArray(command) ? command : command.split(" ");
   if (splitCommand.includes("cd")) {
     throw new Error("Use the cwd argument instead of cd in the command");
   }
   Logger.debug("exec command", command);
   Logger.debug("exec splitCommand", splitCommand);
+
+  if (prompt) {
+    const res = await Prompt.confirm(splitCommand.join(" "));
+    if (!res) {
+      throw new Error("User cancelled command execution");
+    }
+  }
 
   const res = await spawn(splitCommand, !!sync, cwd || process.cwd());
   const { stdout, stderr } = res;

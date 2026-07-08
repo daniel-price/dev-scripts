@@ -1,5 +1,7 @@
 import {
+  DescribeTasksCommand,
   ECSClient,
+  ListClustersCommand,
   ListTagsForResourceCommand,
   ListTaskDefinitionFamiliesCommand,
   ListTaskDefinitionsCommand,
@@ -9,11 +11,26 @@ import {
   RunTaskCommandInput,
   RunTaskCommandOutput,
   Tag,
+  Task,
 } from "@aws-sdk/client-ecs";
+import { ArrayUtil, Logger, Util } from "@dev/util";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
 export const getECSClient = regionalAwsClient(ECSClient);
+
+export async function listClusters(client: ECSClient): Promise<string[]> {
+  const clusterArns: string[] = [];
+  let nextToken: string | undefined;
+
+  do {
+    const res = await client.send(new ListClustersCommand({ nextToken }));
+    clusterArns.push(...(res.clusterArns || []));
+    nextToken = res.nextToken;
+  } while (nextToken);
+
+  return clusterArns;
+}
 
 export async function listTasks(
   client: ECSClient,
@@ -26,6 +43,108 @@ export async function listTasks(
   );
 
   return res.taskArns || [];
+}
+
+export async function listRunningTasks(
+  client: ECSClient,
+  clusterArn: string,
+): Promise<string[]> {
+  const taskArns: string[] = [];
+  let nextToken: string | undefined;
+
+  do {
+    const res = await client.send(
+      new ListTasksCommand({
+        cluster: clusterArn,
+        desiredStatus: "RUNNING",
+        nextToken,
+      }),
+    );
+    taskArns.push(...(res.taskArns || []));
+    nextToken = res.nextToken;
+  } while (nextToken);
+
+  return taskArns;
+}
+
+export async function describeTasks(
+  client: ECSClient,
+  clusterArn: string,
+  taskArns: string[],
+): Promise<Task[]> {
+  const tasks: Task[] = [];
+
+  for (const taskArnBatch of ArrayUtil.chunk(taskArns, 100)) {
+    const res = await client.send(
+      new DescribeTasksCommand({
+        cluster: clusterArn,
+        tasks: taskArnBatch,
+        include: ["TAGS"],
+      }),
+    );
+    tasks.push(...(res.tasks || []));
+  }
+
+  return tasks;
+}
+
+export type TaskMatch = {
+  clusterArn: string;
+  task: Task;
+};
+
+export async function findMatchingTasks(
+  client: ECSClient,
+  name: string,
+  cluster?: string,
+): Promise<TaskMatch[]> {
+  const clusters = cluster ? [cluster] : await listClusters(client);
+  Logger.debug(`Searching for ECS tasks in clusters: ${clusters.join(", ")}`);
+  const matches: TaskMatch[] = [];
+
+  for (const clusterArn of clusters) {
+    Logger.debug(`Searching for ECS tasks in cluster: ${clusterArn}`);
+    const taskArns = await listRunningTasks(client, clusterArn);
+    Logger.debug(
+      `Found ${taskArns.length} running tasks in cluster: ${clusterArn}`,
+    );
+    if (taskArns.length === 0) continue;
+
+    for (const task of await describeTasks(client, clusterArn, taskArns)) {
+      if (taskMatchesName(task, name)) {
+        matches.push({ clusterArn, task });
+      }
+    }
+  }
+
+  return matches;
+}
+
+export function getTaskDefinitionFamily(task: Task): string | undefined {
+  return task.taskDefinitionArn?.split("/").pop()?.split(":")[0];
+}
+
+function taskMatchesName(task: Task, name: string): boolean {
+  const needle = name.toLowerCase();
+
+  return getSearchableTaskValues(task).some((value) =>
+    value.toLowerCase().includes(needle),
+  );
+}
+
+function getSearchableTaskValues(task: Task): string[] {
+  return [
+    task.taskArn,
+    task.taskDefinitionArn,
+    task.group,
+    task.startedBy,
+    getTaskDefinitionFamily(task),
+    ...(task.tags || []).flatMap(({ key, value }) => [key, value]),
+    ...(task.containers || []).flatMap(({ name, runtimeId }) => [
+      name,
+      runtimeId,
+    ]),
+  ].filter(Util.isNonNil);
 }
 
 export async function listTags(

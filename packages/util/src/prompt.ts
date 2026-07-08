@@ -27,7 +27,37 @@ export async function select(
   const selectionItems = choices.map((choice) =>
     typeof choice === "string" ? { text: choice } : choice,
   );
+  const selectedIndex = promptSelection(message, selectionItems, footerText);
+  const result = selectionItems[selectedIndex];
 
+  if (!result) throw new Error(`No result for selected index ${selectedIndex}`);
+
+  return result.text;
+}
+
+export async function selectItem<T>(
+  message: string,
+  choices: T[],
+  labelFn: (choice: T, index: number) => string,
+  footerText?: string,
+): Promise<T> {
+  const selectionItems = choices.map((choice, index) => ({
+    text: labelFn(choice, index),
+  }));
+  const selectedIndex = promptSelection(message, selectionItems, footerText);
+
+  if (selectedIndex < 0 || selectedIndex >= choices.length) {
+    throw new Error(`No result for selected index ${selectedIndex}`);
+  }
+
+  return choices[selectedIndex];
+}
+
+function promptSelection(
+  message: string,
+  selectionItems: SelectionItem[],
+  footerText?: string,
+): number {
   const { selectedIndex, error } = createSelection(selectionItems, {
     headerText: message,
     perPage: 100,
@@ -36,10 +66,6 @@ export async function select(
   if (error === "Cancelled") throw new PromptCancelledError();
   if (error) throw new Error(error);
   if (selectedIndex === null) throw new Error("No index");
-  const result = selectionItems[selectedIndex];
 
-  if (result === null)
-    throw new Error(`No result for selected index ${selectedIndex}`);
-
-  return result.text;
+  return selectedIndex;
 }

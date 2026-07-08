@@ -18,19 +18,22 @@ export default defineScript({
     });
 
     if (shouldCreate) {
-      const fileContents = `import { Logger, R } from "@dev/util";
+      const fileContents = `import { defineScript } from "./script";
 
-import { defineScript } from "./script";
+import { Logger, R } from "@dev/util";
 
 export default defineScript({
   args: {
-    arg: { type: R.String.optional(), description: "An example argument."},
+    arg: {
+      type: R.String.optional(),
+      description: "An example argument.",
+    },
   },
   help: () => {
     return "This is a new script. Edit the run function to add your logic.";
   },
-  run: async () => {
-    Logger.info("Running ${name} script");
+  run: async ({arg}) => {
+    Logger.info("Running ${name} script", arg);
   },
 });`;
 

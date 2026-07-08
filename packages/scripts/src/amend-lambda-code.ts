@@ -112,41 +112,48 @@ async function removeFromRecentlyOpenedFiles(
   vsCodeDbPath: string,
   downloadPath: string,
 ): Promise<void> {
-  if (!vsCodeDbPath) {
-    Logger.info(
-      "VS_CODE_DB_PATH is not set, skipping recently opened files cleanup.",
+  try {
+    if (!vsCodeDbPath) {
+      Logger.info(
+        "VS_CODE_DB_PATH is not set, skipping recently opened files cleanup.",
+      );
+      return;
+    }
+    const db = new SqlLite.Database(vsCodeDbPath);
+    const typedResult = await SqlLite.select(
+      db,
+      "ItemTable",
+      R.Record({ key: R.String, value: R.String }),
+      { key: "history.recentlyOpenedPathsList" },
     );
-    return;
+
+    const parsedResult = Json.parse(
+      typedResult.value,
+      R.Record({
+        entries: R.Array(
+          R.Record({ folderUri: R.String }).Or(R.Record({ fileUri: R.String })),
+        ),
+      }),
+    );
+
+    parsedResult.entries = parsedResult.entries.filter((e) => {
+      const folderOrFileUri = "folderUri" in e ? e.folderUri : e.fileUri;
+
+      return !folderOrFileUri.includes(downloadPath);
+    });
+
+    const stringifiedResult = Json.stringify(parsedResult);
+
+    SqlLite.update(
+      db,
+      "ItemTable",
+      { value: stringifiedResult },
+      { key: "history.recentlyOpenedPathsList" },
+    );
+  } catch (error) {
+    Logger.error("Failed to remove from recently opened files:", error, {
+      vsCodeDbPath,
+      downloadPath,
+    });
   }
-  const db = new SqlLite.Database(vsCodeDbPath);
-  const typedResult = await SqlLite.select(
-    db,
-    "ItemTable",
-    R.Record({ key: R.String, value: R.String }),
-    { key: "history.recentlyOpenedPathsList" },
-  );
-
-  const parsedResult = Json.parse(
-    typedResult.value,
-    R.Record({
-      entries: R.Array(
-        R.Record({ folderUri: R.String }).Or(R.Record({ fileUri: R.String })),
-      ),
-    }),
-  );
-
-  parsedResult.entries = parsedResult.entries.filter((e) => {
-    const folderOrFileUri = "folderUri" in e ? e.folderUri : e.fileUri;
-
-    return !folderOrFileUri.includes(downloadPath);
-  });
-
-  const stringifiedResult = Json.stringify(parsedResult);
-
-  SqlLite.update(
-    db,
-    "ItemTable",
-    { value: stringifiedResult },
-    { key: "history.recentlyOpenedPathsList" },
-  );
 }

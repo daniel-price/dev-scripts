@@ -52,10 +52,14 @@ function writeLog(
   stream.write(`${formatLabel(`[${label}]`)} ${message}\n`);
 }
 
-export function error(context: string | AppError, e?: unknown): void {
+export function error(
+  context: string | AppError,
+  e?: unknown,
+  data?: Record<string, unknown>,
+): void {
   if (!shouldLog(LOG_LEVELS.ERROR)) return;
 
-  logAppError(context, e);
+  logAppError(context, e, data);
 }
 
 const envLogLevel = moize(() => {

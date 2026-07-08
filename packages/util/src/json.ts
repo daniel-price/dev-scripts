@@ -3,7 +3,7 @@ import * as R from "./runtypes";
 
 export function stringify(
   obj:
-    | object
+    | Record<string, unknown>
     | Array<Record<string, unknown> | string>
     | string
     | Map<string, unknown>,
