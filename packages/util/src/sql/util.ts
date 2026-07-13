@@ -1,6 +1,8 @@
 //import sql and SQL from bun
 import { SQL, sql } from "bun";
 
+import type { Runtype } from "../runtypes";
+
 export { SQL, sql };
 
 export type Wheres = Record<string, unknown>;
@@ -10,7 +12,9 @@ export type CommonOptions = {
   wheres?: Wheres;
 };
 
-export type SelectOptions = CommonOptions;
+export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
+  runtype?: Runtype<T>;
+};
 
 export function prefixedTableName(
   table: string,

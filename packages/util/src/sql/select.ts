@@ -36,24 +36,29 @@ export function select(
   table: string,
   runtype?: R.Runtype<unknown>,
 ): SelectQuery<unknown> {
-  return createSelectQuery(client, table, runtype ?? R.Record({}), {});
+  return createSelectQuery(client, table, runtype ? { runtype } : {});
 }
 
-function createSelectQuery<T>(
+function createSelectQuery<T = Record<string, unknown>>(
   client: SQL,
   table: string,
-  runtype: R.Runtype<T>,
-  options: SelectOptions,
+  options: SelectOptions<T> = {},
 ): SelectQuery<T> {
+  const runtype =
+    options.runtype ?? (R.Record({}) as unknown as R.Runtype<T>);
+
   const query = withCommonQueryMethods(
     options,
-    (next) => createSelectQuery(client, table, runtype, next),
+    (next) => createSelectQuery(client, table, next),
     () => selectInternal(client, table, runtype, options),
   );
 
   return Object.assign(query, {
     runtype<U>(newRuntype: R.Runtype<U>): SelectQuery<U> {
-      return createSelectQuery(client, table, newRuntype, options);
+      return createSelectQuery(client, table, {
+        ...options,
+        runtype: newRuntype,
+      });
     },
   });
 }
@@ -62,7 +67,7 @@ async function selectInternal<T>(
   client: SQL,
   table: string,
   runtype: R.Runtype<T>,
-  options: SelectOptions = {},
+  options: SelectOptions<T> = {},
 ): Promise<SelectResult<T>> {
   const query = client`
 SELECT *
