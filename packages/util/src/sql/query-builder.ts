@@ -28,3 +28,22 @@ export function bindQueryState<TOptions extends CommonOptions, TSelf>(
     where: state.where.bind(state),
   };
 }
+
+export function queryThen<TResult>(
+  execute: () => Promise<TResult>,
+): Pick<PromiseLike<TResult>, "then"> {
+  return {
+    then<TResult1 = TResult, TResult2 = never>(
+      onfulfilled?:
+        | ((value: TResult) => TResult1 | PromiseLike<TResult1>)
+        | null
+        | undefined,
+      onrejected?:
+        | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+        | null
+        | undefined,
+    ): Promise<TResult1 | TResult2> {
+      return execute().then(onfulfilled, onrejected);
+    },
+  };
+}

@@ -1,4 +1,4 @@
-import { QueryState } from "./query-builder";
+import { QueryState, queryThen } from "./query-builder";
 import { CommonOptions, prefixedTableName, SQL, sql } from "./util";
 
 type InsertOptions = CommonOptions;
@@ -13,6 +13,7 @@ export function insert<T>(
 
 class InsertQuery<T> implements PromiseLike<void> {
   declare tablePrefix: QueryState<InsertOptions, InsertQuery<T>>["tablePrefix"];
+  declare then: PromiseLike<void>["then"];
 
   #client: SQL;
   #table: string;
@@ -36,25 +37,9 @@ class InsertQuery<T> implements PromiseLike<void> {
     );
     void Object.assign(this, {
       tablePrefix: state.tablePrefix.bind(state),
-    });
-  }
-
-  then<TResult1 = void, TResult2 = never>(
-    onfulfilled?:
-      | ((value: void) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined,
-  ): Promise<TResult1 | TResult2> {
-    return insertInternal(
-      this.#client,
-      this.#table,
-      this.#items,
-      this.#options,
-    ).then(onfulfilled, onrejected);
+    }, queryThen(() =>
+      insertInternal(this.#client, this.#table, this.#items, this.#options),
+    ));
   }
 }
 

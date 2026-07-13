@@ -1,5 +1,5 @@
 import * as Logger from "../logger";
-import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -17,6 +17,7 @@ export function deleteAll(client: SQL, table: string): DeleteQuery {
 class DeleteQuery implements TableQueryMethods<DeleteQuery>, PromiseLike<void> {
   declare tablePrefix: QueryState<DeleteOptions, DeleteQuery>["tablePrefix"];
   declare where: QueryState<DeleteOptions, DeleteQuery>["where"];
+  declare then: PromiseLike<void>["then"];
 
   #client: SQL;
   #table: string;
@@ -31,22 +32,10 @@ class DeleteQuery implements TableQueryMethods<DeleteQuery>, PromiseLike<void> {
       options,
       (next) => new DeleteQuery(client, table, next),
     );
-    void Object.assign(this, bindQueryState(state));
-  }
-
-  then<TResult1 = void, TResult2 = never>(
-    onfulfilled?:
-      | ((value: void) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined,
-  ): Promise<TResult1 | TResult2> {
-    return deleteInternal(this.#client, this.#table, this.#options).then(
-      onfulfilled,
-      onrejected,
+    void Object.assign(
+      this,
+      bindQueryState(state),
+      queryThen(() => deleteInternal(this.#client, this.#table, this.#options)),
     );
   }
 }

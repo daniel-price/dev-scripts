@@ -1,5 +1,5 @@
 import * as R from "../runtypes";
-import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -35,44 +35,29 @@ class SelectQuery<T>
     SelectQuery<T>
   >["tablePrefix"];
   declare where: QueryState<SelectOptions<T>, SelectQuery<T>>["where"];
+  declare then: PromiseLike<SelectResult<T>>["then"];
 
-  #client: SQL;
-  #table: string;
-  #options: SelectOptions<T>;
-
-  constructor(client: SQL, table: string, options: SelectOptions<T>) {
-    this.#client = client;
-    this.#table = table;
-    this.#options = options;
-
+  constructor(
+    private readonly client: SQL,
+    private readonly table: string,
+    private readonly options: SelectOptions<T>,
+  ) {
     const state = new QueryState(
       options,
-      (next) => new SelectQuery(client, table, next),
+      (next) => new SelectQuery(this.client, this.table, next),
     );
-    void Object.assign(this, bindQueryState(state));
+    void Object.assign(
+      this,
+      bindQueryState(state),
+      queryThen(() => selectInternal(this.client, this.table, this.options)),
+    );
   }
 
   runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
-    return new SelectQuery(this.#client, this.#table, {
-      ...this.#options,
+    return new SelectQuery(this.client, this.table, {
+      ...this.options,
       runtype,
     });
-  }
-
-  then<TResult1 = SelectResult<T>, TResult2 = never>(
-    onfulfilled?:
-      | ((value: SelectResult<T>) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined,
-  ): Promise<TResult1 | TResult2> {
-    return selectInternal(this.#client, this.#table, this.#options).then(
-      onfulfilled,
-      onrejected,
-    );
   }
 }
 

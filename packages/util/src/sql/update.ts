@@ -1,4 +1,4 @@
-import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -20,6 +20,7 @@ export function update<T extends Record<string, unknown>>(
 class UpdateQuery implements TableQueryMethods<UpdateQuery>, PromiseLike<void> {
   declare tablePrefix: QueryState<UpdateOptions, UpdateQuery>["tablePrefix"];
   declare where: QueryState<UpdateOptions, UpdateQuery>["where"];
+  declare then: PromiseLike<void>["then"];
 
   #client: SQL;
   #table: string;
@@ -41,25 +42,13 @@ class UpdateQuery implements TableQueryMethods<UpdateQuery>, PromiseLike<void> {
       options,
       (next) => new UpdateQuery(client, table, set, next),
     );
-    void Object.assign(this, bindQueryState(state));
-  }
-
-  then<TResult1 = void, TResult2 = never>(
-    onfulfilled?:
-      | ((value: void) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined,
-  ): Promise<TResult1 | TResult2> {
-    return updateInternal(
-      this.#client,
-      this.#table,
-      this.#set,
-      this.#options,
-    ).then(onfulfilled, onrejected);
+    void Object.assign(
+      this,
+      bindQueryState(state),
+      queryThen(() =>
+        updateInternal(this.#client, this.#table, this.#set, this.#options),
+      ),
+    );
   }
 }
 
