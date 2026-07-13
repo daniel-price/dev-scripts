@@ -13,6 +13,16 @@ export const tableQueryMethods = [
   "where",
 ] as const satisfies ReadonlyArray<TableQueryMethod>;
 
+export type ComposedQuery<
+  TSelf,
+  TResult,
+  M extends readonly TableQueryMethod[] = typeof tableQueryMethods,
+> = Pick<TableQueryMethods<TSelf>, M[number]> & Pick<PromiseLike<TResult>, "then">;
+
+export function asQuery<TQuery>(query: object): TQuery {
+  return query as TQuery;
+}
+
 export class QueryState<TOptions extends CommonOptions, TSelf> {
   constructor(
     readonly options: TOptions,
@@ -58,4 +68,27 @@ export function queryThen<TResult>(
       return execute().then(onfulfilled, onrejected);
     },
   };
+}
+
+export function attachQuery<
+  TTarget extends object,
+  TOptions extends CommonOptions,
+  TSelf,
+  TResult,
+  const M extends readonly TableQueryMethod[],
+>(
+  target: TTarget,
+  config: {
+    options: TOptions;
+    recreate: (next: TOptions) => TSelf;
+    execute: () => Promise<TResult>;
+    methods?: M;
+  },
+): void {
+  const state = new QueryState(config.options, config.recreate);
+  void Object.assign(
+    target,
+    bindQueryState(state, config.methods),
+    queryThen(config.execute),
+  );
 }

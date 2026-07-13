@@ -1,5 +1,5 @@
 import * as R from "../runtypes";
-import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
+import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -20,44 +20,43 @@ export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
   runtype: R.Runtype<T>;
 };
 
+export interface SelectQuery<T>
+  extends ComposedQuery<SelectQuery<T>, SelectResult<T>> {
+  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
+}
+
 export function select(
   client: SQL,
   table: string,
 ): SelectQuery<Record<string, unknown>> {
-  return new SelectQuery(client, table, { runtype: defaultRowRuntype });
+  return asQuery<SelectQuery<Record<string, unknown>>>(
+    new SelectQueryImpl(client, table, { runtype: defaultRowRuntype }),
+  );
 }
 
-class SelectQuery<T>
-  implements TableQueryMethods<SelectQuery<T>>, PromiseLike<SelectResult<T>>
-{
-  declare tablePrefix: QueryState<
-    SelectOptions<T>,
-    SelectQuery<T>
-  >["tablePrefix"];
-  declare where: QueryState<SelectOptions<T>, SelectQuery<T>>["where"];
-  declare then: PromiseLike<SelectResult<T>>["then"];
-
+class SelectQueryImpl<T> {
   constructor(
     private readonly client: SQL,
     private readonly table: string,
     private readonly options: SelectOptions<T>,
   ) {
-    const state = new QueryState(
+    attachQuery(this, {
       options,
-      (next) => new SelectQuery(this.client, this.table, next),
-    );
-    void Object.assign(
-      this,
-      bindQueryState(state),
-      queryThen(() => selectInternal(this.client, this.table, this.options)),
-    );
+      recreate: (next) =>
+        asQuery<SelectQuery<T>>(
+          new SelectQueryImpl(this.client, this.table, next),
+        ),
+      execute: () => selectInternal(this.client, this.table, this.options),
+    });
   }
 
   runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
-    return new SelectQuery(this.client, this.table, {
-      ...this.options,
-      runtype,
-    });
+    return asQuery<SelectQuery<U>>(
+      new SelectQueryImpl(this.client, this.table, {
+        ...this.options,
+        runtype,
+      }),
+    );
   }
 }
 

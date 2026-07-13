@@ -1,10 +1,5 @@
 import * as Logger from "../logger";
-import {
-  bindQueryState,
-  QueryState,
-  queryThen,
-  TableQueryMethods,
-} from "./query-builder";
+import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -15,29 +10,26 @@ import {
 
 type DeleteOptions = CommonOptions;
 
+export interface DeleteQuery extends ComposedQuery<DeleteQuery, void> {}
+
 export function deleteAll(client: SQL, table: string): DeleteQuery {
-  return new DeleteQuery(client, table, {});
+  return asQuery<DeleteQuery>(new DeleteQueryImpl(client, table, {}));
 }
 
-class DeleteQuery implements TableQueryMethods<DeleteQuery>, PromiseLike<void> {
-  declare tablePrefix: QueryState<DeleteOptions, DeleteQuery>["tablePrefix"];
-  declare where: QueryState<DeleteOptions, DeleteQuery>["where"];
-  declare then: PromiseLike<void>["then"];
-
+class DeleteQueryImpl {
   constructor(
     private readonly client: SQL,
     private readonly table: string,
     private readonly options: DeleteOptions,
   ) {
-    const state = new QueryState(
+    attachQuery(this, {
       options,
-      (next) => new DeleteQuery(this.client, this.table, next),
-    );
-    void Object.assign(
-      this,
-      bindQueryState(state),
-      queryThen(() => deleteInternal(this.client, this.table, this.options)),
-    );
+      recreate: (next) =>
+        asQuery<DeleteQuery>(
+          new DeleteQueryImpl(this.client, this.table, next),
+        ),
+      execute: () => deleteInternal(this.client, this.table, this.options),
+    });
   }
 }
 

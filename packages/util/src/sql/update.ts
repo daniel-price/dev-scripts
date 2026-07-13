@@ -1,9 +1,4 @@
-import {
-  bindQueryState,
-  QueryState,
-  queryThen,
-  TableQueryMethods,
-} from "./query-builder";
+import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -14,36 +9,32 @@ import {
 
 type UpdateOptions = CommonOptions;
 
+export interface UpdateQuery extends ComposedQuery<UpdateQuery, void> {}
+
 export function update<T extends Record<string, unknown>>(
   client: SQL,
   table: string,
   set: T,
 ): UpdateQuery {
-  return new UpdateQuery(client, table, set, {});
+  return asQuery<UpdateQuery>(new UpdateQueryImpl(client, table, set, {}));
 }
 
-class UpdateQuery implements TableQueryMethods<UpdateQuery>, PromiseLike<void> {
-  declare tablePrefix: QueryState<UpdateOptions, UpdateQuery>["tablePrefix"];
-  declare where: QueryState<UpdateOptions, UpdateQuery>["where"];
-  declare then: PromiseLike<void>["then"];
-
+class UpdateQueryImpl {
   constructor(
     private readonly client: SQL,
     private readonly table: string,
     private readonly set: Record<string, unknown>,
     private readonly options: UpdateOptions,
   ) {
-    const state = new QueryState(
+    attachQuery(this, {
       options,
-      (next) => new UpdateQuery(this.client, this.table, this.set, next),
-    );
-    void Object.assign(
-      this,
-      bindQueryState(state),
-      queryThen(() =>
+      recreate: (next) =>
+        asQuery<UpdateQuery>(
+          new UpdateQueryImpl(this.client, this.table, this.set, next),
+        ),
+      execute: () =>
         updateInternal(this.client, this.table, this.set, this.options),
-      ),
-    );
+    });
   }
 }
 
