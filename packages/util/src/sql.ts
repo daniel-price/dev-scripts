@@ -330,9 +330,7 @@ async function deleteReferencingRows(
     }
 
     for (const childWheres of childWheresList) {
-      if (
-        await isColumnNullable(client, childTable, ref.referencing_column)
-      ) {
+      if (await isColumnNullable(client, childTable, ref.referencing_column)) {
         await update(
           client,
           childTable,
