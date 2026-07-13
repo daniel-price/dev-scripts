@@ -5,7 +5,11 @@ import { defineScript } from "./script";
 
 export default defineScript({
   args: {
-    name: { type: R.String, description: "The name of the script to edit." },
+    name: {
+      type: R.String,
+      description: "The name of the script to edit.",
+      short: "n",
+    },
   },
   help: () => {
     return `This script edits a script in the scripts directory. If the script does not exist, it will be created.`;

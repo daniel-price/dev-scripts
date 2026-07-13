@@ -136,15 +136,16 @@ await socket.start();
 
 const tableName = "test_table";
 
+const client = new SQL({
+  hostname: "127.0.0.1",
+  port: 9876,
+  username: "postgres",
+  password: "postgres",
+  database: "postgres",
+});
+
 describe("Sql", () => {
   it("should select, insert, update and delete correctly", async () => {
-    const client = new SQL({
-      hostname: "127.0.0.1",
-      port: 9876,
-      username: "postgres",
-      password: "postgres",
-      database: "postgres",
-    });
     await client`SELECT 1`;
     expect(db.getStatements()).toEqual(["SELECT 1"]);
     await client`DROP TABLE IF EXISTS ${Sql.sql(tableName)}`;
@@ -336,6 +337,44 @@ describe("Sql", () => {
       count: 0,
       lastInsertRowid: null,
       records: [],
+    });
+  });
+
+  it("should update a field to null using wheres", async () => {
+    await client`DROP TABLE IF EXISTS ${Sql.sql(tableName)}`;
+    await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(
+      tableName,
+    )} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
+    db.getStatements();
+
+    await Sql.insert(client, tableName, [{ id: 1, name: "name_1", age: 10 }]);
+    db.getStatements();
+
+    await Sql.update(
+      client,
+      tableName,
+      { name: null },
+      { wheres: { id: 1 } },
+    );
+
+    expect(db.getStatements()).toEqual([
+      `UPDATE "test_table" SET "name" = $1 WHERE "id" = $2`,
+      [null, 1],
+    ]);
+
+    const updated = await Sql.select(client, tableName, R.Record({}));
+    expect(db.getStatements()).toEqual([[]]);
+    expect(updated).toEqual({
+      affectedRows: null,
+      count: 1,
+      lastInsertRowid: null,
+      records: [
+        {
+          age: 10,
+          id: 1,
+          name: null,
+        },
+      ],
     });
   });
 });

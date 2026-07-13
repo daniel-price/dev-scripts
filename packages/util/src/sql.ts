@@ -218,11 +218,84 @@ export function withQueryLogging(client: SQL): SQL {
   }) as SQL;
 }
 
+type ForeignKeyReference = {
+  referencing_table: string;
+  referencing_column: string;
+  referenced_column: string;
+};
+
+function tableNameFromRegclass(regclass: string): string {
+  const unqualified = regclass.includes(".")
+    ? regclass.split(".").pop()!
+    : regclass;
+  return unqualified.replace(/^"(.*)"$/, "$1");
+}
+
+async function getForeignKeyReferences(
+  client: SQL,
+  tableName: string,
+): Promise<ForeignKeyReference[]> {
+  const refs = await client`
+SELECT
+  conrelid::regclass::text AS referencing_table,
+  (
+    SELECT attname
+    FROM pg_attribute
+    WHERE attrelid = c.conrelid
+      AND attnum = c.conkey[1]
+  ) AS referencing_column,
+  (
+    SELECT attname
+    FROM pg_attribute
+    WHERE attrelid = c.confrelid
+      AND attnum = c.confkey[1]
+  ) AS referenced_column
+FROM pg_constraint c
+WHERE c.contype = 'f'
+  AND c.confrelid = to_regclass(${tableName})
+`;
+  return refs as ForeignKeyReference[];
+}
+
+async function deleteReferencingRows(
+  client: SQL,
+  table: string,
+  wheres: Record<string, unknown>,
+  options: Options,
+): Promise<void> {
+  const tableName = prefixedTableName(table, options);
+  const refs = await getForeignKeyReferences(client, tableName);
+
+  for (const ref of refs) {
+    const value = wheres[ref.referenced_column];
+    if (value === undefined) {
+      continue;
+    }
+
+    const childWheres = { [ref.referencing_column]: value };
+    const childTable = tableNameFromRegclass(ref.referencing_table);
+
+    await deleteReferencingRows(client, childTable, childWheres, options);
+    await deleteAll(client, childTable, {
+      ...options,
+      wheres: childWheres,
+      cascade: false,
+    });
+  }
+}
+
 export async function deleteAll(
   client: SQL,
   table: string,
-  options: Options & { wheres?: Record<string, unknown> } = {},
+  options: Options & {
+    wheres?: Record<string, unknown>;
+    cascade?: boolean;
+  } = {},
 ): Promise<void> {
+  if (options.cascade && options.wheres) {
+    await deleteReferencingRows(client, table, options.wheres, options);
+  }
+
   const query = client`
 DELETE FROM ${sql(prefixedTableName(table, options))}
 ${constructWhere(options.wheres)}
