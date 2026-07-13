@@ -1,7 +1,7 @@
 //import sql and SQL from bun
 import { SQL, sql } from "bun";
 
-import type { Runtype } from "../runtypes";
+import * as R from "../runtypes";
 
 export { SQL, sql };
 
@@ -12,8 +12,11 @@ export type CommonOptions = {
   wheres?: Wheres;
 };
 
+export const defaultRowRuntype =
+  R.Record({}) as R.Runtype<Record<string, unknown>>;
+
 export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
-  runtype?: Runtype<T>;
+  runtype: R.Runtype<T>;
 };
 
 export function prefixedTableName(
