@@ -1,5 +1,5 @@
 import * as R from "../runtypes";
-import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -24,33 +24,56 @@ export function select(
   client: SQL,
   table: string,
 ): SelectQuery<Record<string, unknown>> {
-  return createSelectQuery(client, table, { runtype: defaultRowRuntype });
+  return new SelectQuery(client, table, { runtype: defaultRowRuntype });
 }
 
-interface SelectQuery<T>
-  extends TableQueryMethods<SelectQuery<T>>,
-    PromiseLike<SelectResult<T>> {
-  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
-}
+class SelectQuery<T>
+  implements TableQueryMethods<SelectQuery<T>>, PromiseLike<SelectResult<T>>
+{
+  declare tablePrefix: QueryState<
+    SelectOptions<T>,
+    SelectQuery<T>
+  >["tablePrefix"];
+  declare where: QueryState<SelectOptions<T>, SelectQuery<T>>["where"];
 
-function createSelectQuery<T>(
-  client: SQL,
-  table: string,
-  options: SelectOptions<T>,
-): SelectQuery<T> {
-  const recreate = <U>(next: SelectOptions<U>): SelectQuery<U> =>
-    createSelectQuery(client, table, next);
+  #client: SQL;
+  #table: string;
+  #options: SelectOptions<T>;
 
-  return Object.assign(
-    withCommonQueryMethods(options, recreate, () =>
-      selectInternal(client, table, options),
-    ),
-    {
-      runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
-        return recreate({ ...options, runtype });
-      },
-    },
-  );
+  constructor(client: SQL, table: string, options: SelectOptions<T>) {
+    this.#client = client;
+    this.#table = table;
+    this.#options = options;
+
+    const state = new QueryState(
+      options,
+      (next) => new SelectQuery(client, table, next),
+    );
+    void Object.assign(this, bindQueryState(state));
+  }
+
+  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
+    return new SelectQuery(this.#client, this.#table, {
+      ...this.#options,
+      runtype,
+    });
+  }
+
+  then<TResult1 = SelectResult<T>, TResult2 = never>(
+    onfulfilled?:
+      | ((value: SelectResult<T>) => TResult1 | PromiseLike<TResult1>)
+      | null
+      | undefined,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | null
+      | undefined,
+  ): Promise<TResult1 | TResult2> {
+    return selectInternal(this.#client, this.#table, this.#options).then(
+      onfulfilled,
+      onrejected,
+    );
+  }
 }
 
 async function selectInternal<T>(

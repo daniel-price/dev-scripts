@@ -1,4 +1,4 @@
-import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -9,29 +9,58 @@ import {
 
 type UpdateOptions = CommonOptions;
 
-interface UpdateQuery
-  extends TableQueryMethods<UpdateQuery>,
-    PromiseLike<void> {}
-
 export function update<T extends Record<string, unknown>>(
   client: SQL,
   table: string,
   set: T,
 ): UpdateQuery {
-  return createUpdateQuery(client, table, set, {});
+  return new UpdateQuery(client, table, set, {});
 }
 
-function createUpdateQuery<T extends Record<string, unknown>>(
-  client: SQL,
-  table: string,
-  set: T,
-  options: UpdateOptions,
-): UpdateQuery {
-  return withCommonQueryMethods(
-    options,
-    (next) => createUpdateQuery(client, table, set, next),
-    () => updateInternal(client, table, set, options),
-  );
+class UpdateQuery implements TableQueryMethods<UpdateQuery>, PromiseLike<void> {
+  declare tablePrefix: QueryState<UpdateOptions, UpdateQuery>["tablePrefix"];
+  declare where: QueryState<UpdateOptions, UpdateQuery>["where"];
+
+  #client: SQL;
+  #table: string;
+  #set: Record<string, unknown>;
+  #options: UpdateOptions;
+
+  constructor(
+    client: SQL,
+    table: string,
+    set: Record<string, unknown>,
+    options: UpdateOptions,
+  ) {
+    this.#client = client;
+    this.#table = table;
+    this.#set = set;
+    this.#options = options;
+
+    const state = new QueryState(
+      options,
+      (next) => new UpdateQuery(client, table, set, next),
+    );
+    void Object.assign(this, bindQueryState(state));
+  }
+
+  then<TResult1 = void, TResult2 = never>(
+    onfulfilled?:
+      | ((value: void) => TResult1 | PromiseLike<TResult1>)
+      | null
+      | undefined,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | null
+      | undefined,
+  ): Promise<TResult1 | TResult2> {
+    return updateInternal(
+      this.#client,
+      this.#table,
+      this.#set,
+      this.#options,
+    ).then(onfulfilled, onrejected);
+  }
 }
 
 export async function updateInternal(

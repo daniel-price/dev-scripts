@@ -1,5 +1,5 @@
 import * as Logger from "../logger";
-import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
+import { bindQueryState, QueryState, TableQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -10,24 +10,45 @@ import {
 
 type DeleteOptions = CommonOptions;
 
-interface DeleteQuery
-  extends TableQueryMethods<DeleteQuery>,
-    PromiseLike<void> {}
-
 export function deleteAll(client: SQL, table: string): DeleteQuery {
-  return createDeleteQuery(client, table, {});
+  return new DeleteQuery(client, table, {});
 }
 
-function createDeleteQuery(
-  client: SQL,
-  table: string,
-  options: DeleteOptions,
-): DeleteQuery {
-  return withCommonQueryMethods(
-    options,
-    (next) => createDeleteQuery(client, table, next),
-    () => deleteInternal(client, table, options),
-  );
+class DeleteQuery implements TableQueryMethods<DeleteQuery>, PromiseLike<void> {
+  declare tablePrefix: QueryState<DeleteOptions, DeleteQuery>["tablePrefix"];
+  declare where: QueryState<DeleteOptions, DeleteQuery>["where"];
+
+  #client: SQL;
+  #table: string;
+  #options: DeleteOptions;
+
+  constructor(client: SQL, table: string, options: DeleteOptions) {
+    this.#client = client;
+    this.#table = table;
+    this.#options = options;
+
+    const state = new QueryState(
+      options,
+      (next) => new DeleteQuery(client, table, next),
+    );
+    void Object.assign(this, bindQueryState(state));
+  }
+
+  then<TResult1 = void, TResult2 = never>(
+    onfulfilled?:
+      | ((value: void) => TResult1 | PromiseLike<TResult1>)
+      | null
+      | undefined,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | null
+      | undefined,
+  ): Promise<TResult1 | TResult2> {
+    return deleteInternal(this.#client, this.#table, this.#options).then(
+      onfulfilled,
+      onrejected,
+    );
+  }
 }
 
 export async function deleteInternal(
