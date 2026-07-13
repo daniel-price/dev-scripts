@@ -341,34 +341,48 @@ describe("Sql", () => {
   });
 
   it("should update a field to null using wheres", async () => {
-    await client`DROP TABLE IF EXISTS ${Sql.sql(tableName)}`;
+    const nullUpdateTableName = "null_update_test_table";
+
+    await client`DROP TABLE IF EXISTS ${Sql.sql(nullUpdateTableName)}`;
     await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(
-      tableName,
+      nullUpdateTableName,
     )} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
     db.getStatements();
 
-    await Sql.insert(client, tableName, [{ id: 1, name: "name_1", age: 10 }]);
-    db.getStatements();
+    await Sql.insert(client, nullUpdateTableName, [
+      { id: 1, name: "name_1", age: 10 },
+      { id: 2, name: "name_2", age: 20 },
+    ]);
+    expect(db.getStatements()).toEqual([
+      `INSERT INTO "null_update_test_table" ("id", "name", "age") VALUES($1, $2, $3),($4, $5, $6)`,
+      [1, "name_1", 10, 2, "name_2", 20],
+    ]);
 
     await Sql.update(
       client,
-      tableName,
+      nullUpdateTableName,
       { name: null },
       { wheres: { id: 1 } },
     );
-
     expect(db.getStatements()).toEqual([
-      `UPDATE "test_table" SET "name" = $1 WHERE "id" = $2`,
+      `UPDATE "null_update_test_table" SET "name" = $1 WHERE "id" = $2`,
       [null, 1],
     ]);
 
-    const updated = await Sql.select(client, tableName, R.Record({}));
-    expect(db.getStatements()).toEqual([[]]);
+    const updated = await Sql.select(client, nullUpdateTableName, R.Record({}));
+    expect(db.getStatements()).toEqual([
+      `SELECT * FROM "null_update_test_table"`,
+    ]);
     expect(updated).toEqual({
       affectedRows: null,
-      count: 1,
+      count: 2,
       lastInsertRowid: null,
       records: [
+        {
+          age: 20,
+          id: 2,
+          name: "name_2",
+        },
         {
           age: 10,
           id: 1,
