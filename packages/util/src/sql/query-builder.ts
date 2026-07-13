@@ -1,8 +1,17 @@
-import { CommonOptions } from "./util";
+import { CommonOptions, Wheres } from "./util";
 
 export type TableQueryMethods<T> = {
-  tablePrefix(prefix: string): T;
+  tablePrefix(prefix?: string): T;
+  where(wheres: Wheres): T;
 };
+
+export function patch<TOptions extends CommonOptions, TSelf>(
+  options: TOptions,
+  recreate: (next: TOptions) => TSelf,
+  update: Partial<CommonOptions>,
+): TSelf {
+  return recreate({ ...options, ...update });
+}
 
 export function withCommonQueryMethods<
   TSelf extends PromiseLike<TResult>,
@@ -14,9 +23,14 @@ export function withCommonQueryMethods<
   execute: () => Promise<TResult>,
 ): TableQueryMethods<TSelf> & Pick<PromiseLike<TResult>, "then"> {
   return {
-    tablePrefix(tablePrefix: string): TSelf {
-      return recreate({ ...options, tablePrefix });
+    tablePrefix(prefix?: string): TSelf {
+      return patch(options, recreate, { tablePrefix: prefix });
     },
+
+    where(wheres: Wheres): TSelf {
+      return patch(options, recreate, { wheres });
+    },
+
     then<TResult1 = TResult, TResult2 = never>(
       onfulfilled?:
         | ((value: TResult) => TResult1 | PromiseLike<TResult1>)

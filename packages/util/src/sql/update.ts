@@ -1,19 +1,17 @@
-import { withCommonQueryMethods } from "./query-builder";
+import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
   prefixedTableName,
   SQL,
   sql,
-  Wheres,
 } from "./util";
 
 type UpdateOptions = CommonOptions;
 
-interface UpdateQuery extends PromiseLike<void> {
-  tablePrefix(prefix: string): UpdateQuery;
-  where(wheres: Wheres): UpdateQuery;
-}
+interface UpdateQuery
+  extends TableQueryMethods<UpdateQuery>,
+    PromiseLike<void> {}
 
 export function update<T extends Record<string, unknown>>(
   client: SQL,
@@ -29,19 +27,11 @@ function createUpdateQuery<T extends Record<string, unknown>>(
   set: T,
   options: UpdateOptions,
 ): UpdateQuery {
-  const updateOptions = (options: UpdateOptions): UpdateQuery =>
-    createUpdateQuery(client, table, set, options);
-  const query = withCommonQueryMethods(
+  return withCommonQueryMethods(
     options,
     (next) => createUpdateQuery(client, table, set, next),
     () => updateInternal(client, table, set, options),
   );
-
-  return Object.assign(query, {
-    where(wheres: Wheres): UpdateQuery {
-      return updateOptions({ ...options, wheres });
-    },
-  });
 }
 
 export async function updateInternal(

@@ -4,7 +4,7 @@ import { CommonOptions, prefixedTableName, SQL, sql } from "./util";
 type InsertOptions = CommonOptions;
 
 interface InsertQuery extends PromiseLike<void> {
-  tablePrefix(prefix: string): InsertQuery;
+  tablePrefix(prefix?: string): InsertQuery;
 }
 
 export function insert<T>(

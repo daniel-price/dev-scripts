@@ -1,20 +1,18 @@
 import * as Logger from "../logger";
-import { withCommonQueryMethods } from "./query-builder";
+import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
   prefixedTableName,
   SQL,
   sql,
-  Wheres,
 } from "./util";
 
 type DeleteOptions = CommonOptions;
 
-interface DeleteQuery extends PromiseLike<void> {
-  tablePrefix(prefix: string): DeleteQuery;
-  where(wheres: Wheres): DeleteQuery;
-}
+interface DeleteQuery
+  extends TableQueryMethods<DeleteQuery>,
+    PromiseLike<void> {}
 
 export function deleteAll(client: SQL, table: string): DeleteQuery {
   return createDeleteQuery(client, table, {});
@@ -25,17 +23,11 @@ function createDeleteQuery(
   table: string,
   options: DeleteOptions,
 ): DeleteQuery {
-  const updateOptions = (options: DeleteOptions): DeleteQuery =>
-    createDeleteQuery(client, table, options);
-
-  const query = withCommonQueryMethods(options, updateOptions, () =>
-    deleteInternal(client, table, options),
+  return withCommonQueryMethods(
+    options,
+    (next) => createDeleteQuery(client, table, next),
+    () => deleteInternal(client, table, options),
   );
-  return Object.assign(query, {
-    where(wheres: Wheres): DeleteQuery {
-      return updateOptions({ ...options, wheres });
-    },
-  });
 }
 
 export async function deleteInternal(

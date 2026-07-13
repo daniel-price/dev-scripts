@@ -1,5 +1,5 @@
 import * as R from "../runtypes";
-import { withCommonQueryMethods } from "./query-builder";
+import { TableQueryMethods, withCommonQueryMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -7,7 +7,6 @@ import {
   prefixedTableName,
   SQL,
   sql,
-  Wheres,
 } from "./util";
 
 type SelectResult<T> = {
@@ -21,12 +20,6 @@ export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
   runtype: R.Runtype<T>;
 };
 
-interface SelectQuery<T> extends PromiseLike<SelectResult<T>> {
-  where(wheres: Wheres): SelectQuery<T>;
-  tablePrefix(prefix?: string): SelectQuery<T>;
-  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
-}
-
 export function select(
   client: SQL,
   table: string,
@@ -34,29 +27,30 @@ export function select(
   return createSelectQuery(client, table, { runtype: defaultRowRuntype });
 }
 
+interface SelectQuery<T>
+  extends TableQueryMethods<SelectQuery<T>>,
+    PromiseLike<SelectResult<T>> {
+  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
+}
+
 function createSelectQuery<T>(
   client: SQL,
   table: string,
   options: SelectOptions<T>,
 ): SelectQuery<T> {
-  const updateOptions = <U>(options: SelectOptions<U>): SelectQuery<U> =>
-    createSelectQuery(client, table, options);
-  const query = withCommonQueryMethods(options, updateOptions, () =>
-    selectInternal(client, table, options),
+  const recreate = <U>(next: SelectOptions<U>): SelectQuery<U> =>
+    createSelectQuery(client, table, next);
+
+  return Object.assign(
+    withCommonQueryMethods(options, recreate, () =>
+      selectInternal(client, table, options),
+    ),
+    {
+      runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
+        return recreate({ ...options, runtype });
+      },
+    },
   );
-
-  return Object.assign(query, {
-    where(wheres: Wheres): SelectQuery<T> {
-      return updateOptions({ ...options, wheres });
-    },
-
-    runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
-      return updateOptions({
-        ...options,
-        runtype,
-      });
-    },
-  });
 }
 
 async function selectInternal<T>(
