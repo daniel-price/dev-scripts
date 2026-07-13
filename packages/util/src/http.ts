@@ -55,7 +55,7 @@ async function doRequest<T>(
     : url;
   const requestParams = getRequestParams(method, options);
 
-  Logger.debug("http request params", requestParams);
+  Logger.debug("Http request", fullUrl, requestParams);
   const response = await fetch(fullUrl, requestParams);
 
   if (!response.ok) {

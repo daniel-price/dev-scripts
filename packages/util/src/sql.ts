@@ -5,9 +5,30 @@ import * as R from "./runtypes";
 
 export const sql = bunsql;
 
+type Wheres = Record<string, unknown>;
+
 type Options = {
   stagePrefix?: string;
+  wheres?: Wheres;
+  cascade?: boolean;
 };
+
+type ForeignKeyReference = {
+  referencing_table: string;
+  referencing_column: string;
+  referenced_column: string;
+};
+
+function quotedRegclass(tableName: string): string {
+  return `"${tableName.replace(/"/g, '""')}"`;
+}
+
+function tableNameFromRegclass(regclass: string): string {
+  const unqualified = regclass.includes(".")
+    ? regclass.split(".").pop()!
+    : regclass;
+  return unqualified.replace(/^"(.*)"$/, "$1");
+}
 
 function prefixedTableName(table: string, options: Options): string {
   return `${options.stagePrefix ? `${options.stagePrefix}_` : ""}${table}`;
@@ -27,6 +48,7 @@ export async function select<T>(
   const query = client`
 SELECT *
 FROM ${sql(prefixedTableName(table, options))}
+${constructWhere(options.wheres)}
 `;
   const result = await query;
   if (!(result && typeof result === "object")) {
@@ -218,19 +240,6 @@ export function withQueryLogging(client: SQL): SQL {
   }) as SQL;
 }
 
-type ForeignKeyReference = {
-  referencing_table: string;
-  referencing_column: string;
-  referenced_column: string;
-};
-
-function tableNameFromRegclass(regclass: string): string {
-  const unqualified = regclass.includes(".")
-    ? regclass.split(".").pop()!
-    : regclass;
-  return unqualified.replace(/^"(.*)"$/, "$1");
-}
-
 async function getForeignKeyReferences(
   client: SQL,
   tableName: string,
@@ -252,45 +261,101 @@ SELECT
   ) AS referenced_column
 FROM pg_constraint c
 WHERE c.contype = 'f'
-  AND c.confrelid = to_regclass(${tableName})
+  AND c.confrelid = to_regclass(${quotedRegclass(tableName)})
 `;
   return refs as ForeignKeyReference[];
+}
+
+async function isColumnNullable(
+  client: SQL,
+  tableName: string,
+  columnName: string,
+): Promise<boolean> {
+  const result = await client`
+SELECT NOT a.attnotnull AS is_nullable
+FROM pg_attribute a
+JOIN pg_class c ON c.oid = a.attrelid
+WHERE c.oid = to_regclass(${quotedRegclass(tableName)})
+  AND a.attname = ${columnName}
+  AND a.attnum > 0
+  AND NOT a.attisdropped
+`;
+  return Boolean(result[0]?.is_nullable);
+}
+
+async function getMatchingColumnValues(
+  client: SQL,
+  tableName: string,
+  columnName: string,
+  wheres: Wheres,
+): Promise<unknown[]> {
+  const query = client`
+SELECT ${sql(columnName)} AS value
+FROM ${sql(tableName)}
+${constructWhere(wheres)}
+`;
+  const rows = await query;
+  return Object.keys(rows)
+    .filter((key) => !isNaN(Number(key)))
+    .map((key) => rows[key].value);
 }
 
 async function deleteReferencingRows(
   client: SQL,
   table: string,
-  wheres: Record<string, unknown>,
+  wheres: Wheres,
   options: Options,
 ): Promise<void> {
   const tableName = prefixedTableName(table, options);
   const refs = await getForeignKeyReferences(client, tableName);
 
   for (const ref of refs) {
-    const value = wheres[ref.referenced_column];
-    if (value === undefined) {
-      continue;
+    const childTable = tableNameFromRegclass(ref.referencing_table);
+    const childWheresList: Wheres[] = [];
+
+    if (wheres[ref.referenced_column] !== undefined) {
+      childWheresList.push({
+        [ref.referencing_column]: wheres[ref.referenced_column],
+      });
+    } else {
+      const referencedValues = await getMatchingColumnValues(
+        client,
+        tableName,
+        ref.referenced_column,
+        wheres,
+      );
+      for (const value of referencedValues) {
+        childWheresList.push({ [ref.referencing_column]: value });
+      }
     }
 
-    const childWheres = { [ref.referencing_column]: value };
-    const childTable = tableNameFromRegclass(ref.referencing_table);
+    for (const childWheres of childWheresList) {
+      if (
+        await isColumnNullable(client, childTable, ref.referencing_column)
+      ) {
+        await update(
+          client,
+          childTable,
+          { [ref.referencing_column]: null },
+          { ...options, wheres: childWheres },
+        );
+        continue;
+      }
 
-    await deleteReferencingRows(client, childTable, childWheres, options);
-    await deleteAll(client, childTable, {
-      ...options,
-      wheres: childWheres,
-      cascade: false,
-    });
+      await deleteReferencingRows(client, childTable, childWheres, options);
+      await deleteAll(client, childTable, {
+        ...options,
+        wheres: childWheres,
+        cascade: false,
+      });
+    }
   }
 }
 
 export async function deleteAll(
   client: SQL,
   table: string,
-  options: Options & {
-    wheres?: Record<string, unknown>;
-    cascade?: boolean;
-  } = {},
+  options: Options = {},
 ): Promise<void> {
   if (options.cascade && options.wheres) {
     await deleteReferencingRows(client, table, options.wheres, options);
@@ -322,7 +387,7 @@ export async function update(
   client: SQL,
   table: string,
   set: Record<string, unknown>,
-  options: Options & { wheres?: Record<string, unknown> } = {},
+  options: Options = {},
 ): Promise<void> {
   const tableName = prefixedTableName(table, options);
 
@@ -337,9 +402,7 @@ ${constructWhere(options.wheres)}`;
   await query;
 }
 
-function constructWhere(
-  wheres: Record<string, unknown> | undefined,
-): Bun.SQLQuery {
+function constructWhere(wheres?: Wheres): Bun.SQLQuery {
   const whereEntries = Object.entries(wheres || {});
   return whereEntries.length
     ? sql`WHERE ${whereEntries
