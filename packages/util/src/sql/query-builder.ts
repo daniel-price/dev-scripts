@@ -5,6 +5,14 @@ export type TableQueryMethods<T> = {
   where(wheres: Wheres): T;
 };
 
+type TableQueryMethod = keyof TableQueryMethods<unknown>;
+
+/** Add new common query methods here and on QueryState / TableQueryMethods. */
+export const tableQueryMethods = [
+  "tablePrefix",
+  "where",
+] as const satisfies ReadonlyArray<TableQueryMethod>;
+
 export class QueryState<TOptions extends CommonOptions, TSelf> {
   constructor(
     readonly options: TOptions,
@@ -20,19 +28,17 @@ export class QueryState<TOptions extends CommonOptions, TSelf> {
   }
 }
 
-export function bindTablePrefix<TOptions extends CommonOptions, TSelf>(
+export function bindQueryState<
+  TOptions extends CommonOptions,
+  TSelf,
+  const M extends readonly TableQueryMethod[],
+>(
   state: QueryState<TOptions, TSelf>,
-): Pick<TableQueryMethods<TSelf>, "tablePrefix"> {
-  return { tablePrefix: state.tablePrefix.bind(state) };
-}
-
-export function bindQueryState<TOptions extends CommonOptions, TSelf>(
-  state: QueryState<TOptions, TSelf>,
-): TableQueryMethods<TSelf> {
-  return {
-    ...bindTablePrefix(state),
-    where: state.where.bind(state),
-  };
+  methods: M = tableQueryMethods as unknown as M,
+): Pick<TableQueryMethods<TSelf>, M[number]> {
+  return Object.fromEntries(
+    methods.map((method) => [method, state[method].bind(state)]),
+  ) as Pick<TableQueryMethods<TSelf>, M[number]>;
 }
 
 export function queryThen<TResult>(
