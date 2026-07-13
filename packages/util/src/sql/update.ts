@@ -1,4 +1,9 @@
-import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
+import {
+  bindQueryState,
+  QueryState,
+  queryThen,
+  TableQueryMethods,
+} from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -22,31 +27,21 @@ class UpdateQuery implements TableQueryMethods<UpdateQuery>, PromiseLike<void> {
   declare where: QueryState<UpdateOptions, UpdateQuery>["where"];
   declare then: PromiseLike<void>["then"];
 
-  #client: SQL;
-  #table: string;
-  #set: Record<string, unknown>;
-  #options: UpdateOptions;
-
   constructor(
-    client: SQL,
-    table: string,
-    set: Record<string, unknown>,
-    options: UpdateOptions,
+    private readonly client: SQL,
+    private readonly table: string,
+    private readonly set: Record<string, unknown>,
+    private readonly options: UpdateOptions,
   ) {
-    this.#client = client;
-    this.#table = table;
-    this.#set = set;
-    this.#options = options;
-
     const state = new QueryState(
       options,
-      (next) => new UpdateQuery(client, table, set, next),
+      (next) => new UpdateQuery(this.client, this.table, this.set, next),
     );
     void Object.assign(
       this,
       bindQueryState(state),
       queryThen(() =>
-        updateInternal(this.#client, this.#table, this.#set, this.#options),
+        updateInternal(this.client, this.table, this.set, this.options),
       ),
     );
   }

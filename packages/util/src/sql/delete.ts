@@ -1,5 +1,10 @@
 import * as Logger from "../logger";
-import { bindQueryState, QueryState, queryThen, TableQueryMethods } from "./query-builder";
+import {
+  bindQueryState,
+  QueryState,
+  queryThen,
+  TableQueryMethods,
+} from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -19,23 +24,19 @@ class DeleteQuery implements TableQueryMethods<DeleteQuery>, PromiseLike<void> {
   declare where: QueryState<DeleteOptions, DeleteQuery>["where"];
   declare then: PromiseLike<void>["then"];
 
-  #client: SQL;
-  #table: string;
-  #options: DeleteOptions;
-
-  constructor(client: SQL, table: string, options: DeleteOptions) {
-    this.#client = client;
-    this.#table = table;
-    this.#options = options;
-
+  constructor(
+    private readonly client: SQL,
+    private readonly table: string,
+    private readonly options: DeleteOptions,
+  ) {
     const state = new QueryState(
       options,
-      (next) => new DeleteQuery(client, table, next),
+      (next) => new DeleteQuery(this.client, this.table, next),
     );
     void Object.assign(
       this,
       bindQueryState(state),
-      queryThen(() => deleteInternal(this.#client, this.#table, this.#options)),
+      queryThen(() => deleteInternal(this.client, this.table, this.options)),
     );
   }
 }

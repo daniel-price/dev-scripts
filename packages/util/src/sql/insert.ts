@@ -15,31 +15,25 @@ class InsertQuery<T> implements PromiseLike<void> {
   declare tablePrefix: QueryState<InsertOptions, InsertQuery<T>>["tablePrefix"];
   declare then: PromiseLike<void>["then"];
 
-  #client: SQL;
-  #table: string;
-  #items: Array<T>;
-  #options: InsertOptions;
-
   constructor(
-    client: SQL,
-    table: string,
-    items: Array<T>,
-    options: InsertOptions,
+    private readonly client: SQL,
+    private readonly table: string,
+    private readonly items: Array<T>,
+    private readonly options: InsertOptions,
   ) {
-    this.#client = client;
-    this.#table = table;
-    this.#items = items;
-    this.#options = options;
-
     const state = new QueryState(
       options,
-      (next) => new InsertQuery(client, table, items, next),
+      (next) => new InsertQuery(this.client, this.table, this.items, next),
     );
-    void Object.assign(this, {
-      tablePrefix: state.tablePrefix.bind(state),
-    }, queryThen(() =>
-      insertInternal(this.#client, this.#table, this.#items, this.#options),
-    ));
+    void Object.assign(
+      this,
+      {
+        tablePrefix: state.tablePrefix.bind(state),
+      },
+      queryThen(() =>
+        insertInternal(this.client, this.table, this.items, this.options),
+      ),
+    );
   }
 }
 
