@@ -1,4 +1,4 @@
-import { QueryState, queryThen } from "./query-builder";
+import { bindTablePrefix, QueryState, queryThen } from "./query-builder";
 import { CommonOptions, prefixedTableName, SQL, sql } from "./util";
 
 type InsertOptions = CommonOptions;
@@ -27,9 +27,7 @@ class InsertQuery<T> implements PromiseLike<void> {
     );
     void Object.assign(
       this,
-      {
-        tablePrefix: state.tablePrefix.bind(state),
-      },
+      bindTablePrefix(state),
       queryThen(() =>
         insertInternal(this.client, this.table, this.items, this.options),
       ),

@@ -20,11 +20,17 @@ export class QueryState<TOptions extends CommonOptions, TSelf> {
   }
 }
 
+export function bindTablePrefix<TOptions extends CommonOptions, TSelf>(
+  state: QueryState<TOptions, TSelf>,
+): Pick<TableQueryMethods<TSelf>, "tablePrefix"> {
+  return { tablePrefix: state.tablePrefix.bind(state) };
+}
+
 export function bindQueryState<TOptions extends CommonOptions, TSelf>(
   state: QueryState<TOptions, TSelf>,
 ): TableQueryMethods<TSelf> {
   return {
-    tablePrefix: state.tablePrefix.bind(state),
+    ...bindTablePrefix(state),
     where: state.where.bind(state),
   };
 }
