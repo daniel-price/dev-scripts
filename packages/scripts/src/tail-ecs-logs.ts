@@ -46,7 +46,11 @@ export default defineScript({
     const task =
       matches.length === 1
         ? matches[0]
-        : await Prompt.select("Select ECS task to tail logs for:", matches, getTaskLabel);
+        : await Prompt.select(
+            "Select ECS task to tail logs for:",
+            matches,
+            getTaskLabel,
+          );
 
     const containerName = await selectContainer(task, container);
     const taskDefinitionArn = task.taskDefinitionArn;
@@ -138,7 +142,10 @@ async function printPreviousLogs(
   }
 }
 
-async function selectContainer(task: Task, container?: string): Promise<string> {
+async function selectContainer(
+  task: Task,
+  container?: string,
+): Promise<string> {
   const containers = task.containers
     ?.map(({ name }) => name)
     .filter(Util.isNonNil);
@@ -195,8 +202,10 @@ function getTaskLabel(task: Task): string {
   const family =
     ECS.getTaskDefinitionFamily(task) || task.group || "unknown-family";
   const containerNames =
-    task.containers?.map(({ name }) => name).filter(Util.isNonNil).join(", ") ||
-    "no containers";
+    task.containers
+      ?.map(({ name }) => name)
+      .filter(Util.isNonNil)
+      .join(", ") || "no containers";
 
   return `${family} (${taskId}) in ${clusterName}: ${containerNames}`;
 }
