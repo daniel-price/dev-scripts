@@ -22,21 +22,11 @@ interface SelectQuery<T> extends PromiseLike<SelectResult<T>> {
   runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
 }
 
-export function select<T>(
-  client: SQL,
-  table: string,
-  runtype: R.Runtype<T>,
-): SelectQuery<T>;
 export function select(
   client: SQL,
   table: string,
-): SelectQuery<Record<string, unknown>>;
-export function select(
-  client: SQL,
-  table: string,
-  runtype?: R.Runtype<unknown>,
-): SelectQuery<unknown> {
-  return createSelectQuery(client, table, runtype ? { runtype } : {});
+): SelectQuery<Record<string, unknown>> {
+  return createSelectQuery(client, table, {});
 }
 
 function createSelectQuery<T = Record<string, unknown>>(
@@ -44,8 +34,7 @@ function createSelectQuery<T = Record<string, unknown>>(
   table: string,
   options: SelectOptions<T> = {},
 ): SelectQuery<T> {
-  const runtype =
-    options.runtype ?? (R.Record({}) as unknown as R.Runtype<T>);
+  const runtype = options.runtype ?? (R.Record({}) as unknown as R.Runtype<T>);
 
   const query = withCommonQueryMethods(
     options,
