@@ -4,6 +4,8 @@ import * as bunSql from "bun";
 import { describe, expect, it } from "bun:test";
 
 import { R, Sql } from "..";
+import { withQueryLogging } from "./sql";
+import { select } from "./sql/select";
 
 const { SQL } = bunSql;
 
@@ -136,13 +138,15 @@ await socket.start();
 
 const tableName = "test_table";
 
-const client = new SQL({
-  hostname: "127.0.0.1",
-  port: 9876,
-  username: "postgres",
-  password: "postgres",
-  database: "postgres",
-});
+const client = withQueryLogging(
+  new SQL({
+    hostname: "127.0.0.1",
+    port: 9876,
+    username: "postgres",
+    password: "postgres",
+    database: "postgres",
+  }),
+);
 
 describe("Sql", () => {
   it("should select, insert, update and delete correctly", async () => {
@@ -176,19 +180,17 @@ describe("Sql", () => {
       [3, "name_3", 30, 4, "name_4", 40],
     ]);
 
-    await Sql.update(
-      client,
-      tableName,
-      { name: "name_1_updated" },
-      { wheres: { id: 1 } },
-    );
+    await Sql.update(client, tableName, { name: "name_1_updated" }).where({
+      id: 1,
+    });
 
     expect(db.getStatements()).toEqual([
       `UPDATE "test_table" SET "name" = $1 WHERE "id" = $2`,
       ["name_1_updated", 1],
     ]);
 
-    const updated = await Sql.select(client, tableName, R.Record({}));
+    const updated = await select(client, tableName);
+
     expect(db.getStatements()).toEqual([`SELECT * FROM "test_table"`]);
     expect(updated).toEqual({
       affectedRows: null,
@@ -225,7 +227,7 @@ describe("Sql", () => {
       ["name_updated"],
     ]);
 
-    const updated2 = await Sql.select(client, tableName, R.Record({}));
+    const updated2 = await select(client, tableName);
     expect(db.getStatements()).toEqual([[]]);
     expect(updated2).toEqual({
       affectedRows: null,
@@ -255,17 +257,14 @@ describe("Sql", () => {
       ],
     });
 
-    await Sql.update(
-      client,
-      tableName,
-      { name: "danp-dentally.danp.sandbox.portal.dental" },
-      { wheres: { id: 1 } },
-    );
+    await Sql.update(client, tableName, {
+      name: "danp-dentally.danp.sandbox.portal.dental",
+    }).where({ id: 1 });
     expect(db.getStatements()).toEqual([
       ["danp-dentally.danp.sandbox.portal.dental", 1],
     ]);
 
-    const updated3 = await Sql.select(client, tableName, R.Record({}));
+    const updated3 = await select(client, tableName);
     expect(db.getStatements()).toEqual([[]]);
     expect(updated3).toEqual({
       affectedRows: null,
@@ -294,16 +293,14 @@ describe("Sql", () => {
         },
       ],
     });
-    await Sql.deleteAll(client, tableName, {
-      wheres: {
-        name: "danp-dentally.danp.sandbox.portal.dental",
-      },
+    await Sql.deleteAll(client, tableName).where({
+      name: "danp-dentally.danp.sandbox.portal.dental",
     });
     expect(db.getStatements()).toEqual([
       `DELETE FROM "test_table" WHERE "name" = $1`,
       ["danp-dentally.danp.sandbox.portal.dental"],
     ]);
-    const afterDeleteAll = await Sql.select(client, tableName, R.Record({}));
+    const afterDeleteAll = await select(client, tableName);
     expect(db.getStatements()).toEqual([[]]);
     expect(afterDeleteAll).toEqual({
       affectedRows: null,
@@ -330,7 +327,7 @@ describe("Sql", () => {
 
     await Sql.deleteAll(client, tableName);
     expect(db.getStatements()).toEqual([`DELETE FROM "test_table"`]);
-    const afterDeleteAll2 = await Sql.select(client, tableName, R.Record({}));
+    const afterDeleteAll2 = await select(client, tableName);
     expect(db.getStatements()).toEqual([[]]);
     expect(afterDeleteAll2).toEqual({
       affectedRows: null,
@@ -361,18 +358,15 @@ describe("Sql", () => {
       [1, "name_1", 10, 2, "name_2", 20],
     ]);
 
-    await Sql.update(
-      client,
-      nullUpdateTableName,
-      { name: null },
-      { wheres: { id: 1 } },
-    );
+    await Sql.update(client, nullUpdateTableName, { name: null }).where({
+      id: 1,
+    });
     expect(db.getStatements()).toEqual([
       `UPDATE "null_update_test_table" SET "name" = $1 WHERE "id" = $2`,
       [null, 1],
     ]);
 
-    const updated = await Sql.select(client, nullUpdateTableName, R.Record({}));
+    const updated = await select(client, nullUpdateTableName);
     expect(db.getStatements()).toEqual([
       `SELECT * FROM "null_update_test_table"`,
     ]);
@@ -393,5 +387,31 @@ describe("Sql", () => {
         },
       ],
     });
+
+    //Check runtype validation
+    const selected = await select(client, nullUpdateTableName).runtype(
+      R.Record({ age: R.Number, id: R.Number, name: R.Nullable(R.String) }),
+    );
+
+    for (const record of selected.records) {
+      expect(record.age).toBeTypeOf("number");
+      // @ts-expect-error not_a_field is not a valid field in the runtype
+      expect(record.not_a_field).toBeUndefined();
+    }
+
+    //Check stagePrefix
+    const stageTableName = "stage_" + nullUpdateTableName;
+    await client`DROP TABLE IF EXISTS ${Sql.sql(stageTableName)}`;
+    await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(
+      stageTableName,
+    )} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
+
+    await select(client, nullUpdateTableName).tablePrefix("stage");
+    expect(db.getStatements()).toEqual([
+      [],
+      'DROP TABLE IF EXISTS "stage_null_update_test_table"',
+      'CREATE TABLE IF NOT EXISTS "stage_null_update_test_table" (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)',
+      `SELECT * FROM "stage_null_update_test_table"`,
+    ]);
   });
 });

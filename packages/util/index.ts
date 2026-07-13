@@ -34,7 +34,7 @@ export * from "./src/retry";
 export { TypeValidationError } from "./src/runtypes";
 export * as R from "./src/runtypes";
 export * as SetUtil from "./src/set";
-export * as Sql from "./src/sql";
+export * as Sql from "./src/sql/index";
 export * as SqlLite from "./src/sqllite";
 export * as Terminal from "./src/terminal";
 export type * as Types from "./src/types";

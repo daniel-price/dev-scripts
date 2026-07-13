@@ -1,10 +1,10 @@
-import { R } from "../..";
+import * as R from "../runtypes";
 import { withCommonQueryMethods } from "./query-builder";
 import {
+  CommonOptions,
   constructWhere,
   defaultRowRuntype,
   prefixedTableName,
-  SelectOptions,
   SQL,
   sql,
   Wheres,
@@ -17,9 +17,13 @@ type SelectResult<T> = {
   lastInsertRowid: number | null;
 };
 
+export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
+  runtype: R.Runtype<T>;
+};
+
 interface SelectQuery<T> extends PromiseLike<SelectResult<T>> {
   where(wheres: Wheres): SelectQuery<T>;
-  stagePrefix(prefix: string): SelectQuery<T>;
+  tablePrefix(prefix?: string): SelectQuery<T>;
   runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
 }
 
@@ -35,17 +39,21 @@ function createSelectQuery<T>(
   table: string,
   options: SelectOptions<T>,
 ): SelectQuery<T> {
-  const query = withCommonQueryMethods(
-    options,
-    (next) => createSelectQuery(client, table, next),
-    () => selectInternal(client, table, options),
+  const updateOptions = <U>(options: SelectOptions<U>): SelectQuery<U> =>
+    createSelectQuery(client, table, options);
+  const query = withCommonQueryMethods(options, updateOptions, () =>
+    selectInternal(client, table, options),
   );
 
   return Object.assign(query, {
-    runtype<U>(newRuntype: R.Runtype<U>): SelectQuery<U> {
-      return createSelectQuery(client, table, {
+    where(wheres: Wheres): SelectQuery<T> {
+      return updateOptions({ ...options, wheres });
+    },
+
+    runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
+      return updateOptions({
         ...options,
-        runtype: newRuntype,
+        runtype,
       });
     },
   });
