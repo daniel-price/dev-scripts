@@ -33,11 +33,12 @@ export function isBooleanRuntype(type: unknown): boolean {
 export function assertType<T>(
   runtype: R.Runtype.Core<T>,
   actualData: unknown,
+  parse = false,
 ): T {
   // Validate only, don't parse: v7 parsing transforms the value (e.g. `Object`
   // strips undeclared keys), whereas we want the original data back unchanged,
   // matching v6 `.validate()` semantics.
-  const result = runtype.inspect(actualData, { parse: false });
+  const result = runtype.inspect(actualData, { parse });
   if (result.success) {
     return result.value;
   }

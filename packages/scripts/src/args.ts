@@ -249,5 +249,9 @@ export async function parseArgs<A extends ArgSchema>(
     argRuntypeSchema[fieldName] = argSchema[fieldName].type;
   }
 
-  return R.assertType(R.Object(argRuntypeSchema), withDefaults) as InferArgs<A>;
+  return R.assertType(
+    R.Object(argRuntypeSchema).exact(),
+    withDefaults,
+    true,
+  ) as InferArgs<A>;
 }
