@@ -1,5 +1,5 @@
 import * as R from "../runtypes";
-import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
+import { asQuery, attachQuery, ComposedQuery, OptionMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -16,14 +16,25 @@ type SelectResult<T> = {
   lastInsertRowid: number | null;
 };
 
-export type SelectOptions<T = Record<string, unknown>> = CommonOptions & {
+type SelectOptionFieldTypes<T> = {
   runtype: R.Runtype<T>;
 };
 
+type SelectOptionKey = keyof SelectOptionFieldTypes<unknown> & string;
+
+const selectOptionKeys = ["runtype"] as const satisfies readonly SelectOptionKey[];
+
+export type SelectOptions<T = Record<string, unknown>> = CommonOptions &
+  Pick<SelectOptionFieldTypes<T>, SelectOptionKey>;
+
 export interface SelectQuery<T>
-  extends ComposedQuery<SelectQuery<T>, SelectResult<T>> {
-  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U>;
-}
+  extends ComposedQuery<SelectQuery<T>, SelectResult<T>>,
+    OptionMethods<
+      SelectQuery<T>,
+      SelectOptions<T>,
+      SelectOptionKey,
+      <U>(runtype: R.Runtype<U>) => SelectQuery<U>
+    > {}
 
 export function select(
   client: SQL,
@@ -42,21 +53,13 @@ class SelectQueryImpl<T> {
   ) {
     attachQuery(this, {
       options,
+      optionKeys: selectOptionKeys,
       recreate: (next) =>
         asQuery<SelectQuery<T>>(
           new SelectQueryImpl(this.client, this.table, next),
         ),
       execute: () => selectInternal(this.client, this.table, this.options),
     });
-  }
-
-  runtype<U>(runtype: R.Runtype<U>): SelectQuery<U> {
-    return asQuery<SelectQuery<U>>(
-      new SelectQueryImpl(this.client, this.table, {
-        ...this.options,
-        runtype,
-      }),
-    );
   }
 }
 

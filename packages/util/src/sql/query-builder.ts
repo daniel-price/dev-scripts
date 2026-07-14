@@ -1,3 +1,4 @@
+import * as R from "../runtypes";
 import { CommonOptions, Wheres } from "./util";
 
 export type TableQueryMethods<T> = {
@@ -17,7 +18,21 @@ export type ComposedQuery<
   TSelf,
   TResult,
   M extends readonly TableQueryMethod[] = typeof tableQueryMethods,
-> = Pick<TableQueryMethods<TSelf>, M[number]> & Pick<PromiseLike<TResult>, "then">;
+> = Pick<TableQueryMethods<TSelf>, M[number]> &
+  Pick<PromiseLike<TResult>, "then">;
+
+export type OptionMethods<
+  TQuery,
+  TOptions,
+  Keys extends keyof TOptions & string,
+  ToRuntypeQuery extends <U>(runtype: R.Runtype<U>) => unknown = <U>(
+    _runtype: R.Runtype<U>,
+  ) => TQuery,
+> = {
+  [K in Keys]: K extends "runtype"
+    ? ToRuntypeQuery
+    : (value: TOptions[K]) => TQuery;
+};
 
 export function asQuery<TQuery>(query: object): TQuery {
   return query as TQuery;
@@ -51,6 +66,24 @@ export function bindQueryState<
   ) as Pick<TableQueryMethods<TSelf>, M[number]>;
 }
 
+export function bindOptionMethods<
+  TOptions,
+  TQuery,
+  const Keys extends readonly (keyof TOptions & string)[],
+>(
+  options: TOptions,
+  recreate: (next: TOptions) => TQuery,
+  keys: Keys,
+): Pick<OptionMethods<TQuery, TOptions, Keys[number]>, Keys[number]> {
+  return Object.fromEntries(
+    keys.map((key) => [
+      key,
+      (value: unknown): TQuery =>
+        recreate({ ...options, [key]: value } as TOptions),
+    ]),
+  ) as Pick<OptionMethods<TQuery, TOptions, Keys[number]>, Keys[number]>;
+}
+
 export function queryThen<TResult>(
   execute: () => Promise<TResult>,
 ): Pick<PromiseLike<TResult>, "then"> {
@@ -76,6 +109,7 @@ export function attachQuery<
   TSelf,
   TResult,
   const M extends readonly TableQueryMethod[],
+  const OptionKeys extends readonly (keyof TOptions & string)[] = readonly [],
 >(
   target: TTarget,
   config: {
@@ -83,12 +117,18 @@ export function attachQuery<
     recreate: (next: TOptions) => TSelf;
     execute: () => Promise<TResult>;
     methods?: M;
+    optionKeys?: OptionKeys;
   },
 ): void {
   const state = new QueryState(config.options, config.recreate);
   void Object.assign(
     target,
     bindQueryState(state, config.methods),
+    bindOptionMethods(
+      config.options,
+      config.recreate,
+      config.optionKeys ?? [],
+    ),
     queryThen(config.execute),
   );
 }
