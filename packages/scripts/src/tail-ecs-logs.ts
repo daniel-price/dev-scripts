@@ -132,8 +132,8 @@ async function printPreviousLogs(
   ]);
   const parsedOutput = Json.parse(
     output,
-    R.Record({
-      events: R.Array(R.Record({ message: R.String })),
+    R.Object({
+      events: R.Array(R.Object({ message: R.String })),
     }),
   );
 

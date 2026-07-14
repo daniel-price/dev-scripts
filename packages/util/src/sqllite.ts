@@ -47,7 +47,7 @@ function constructWhereClause(
 export async function select<T>(
   database: Database,
   table: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   wheres: Record<string, ValueType> = {},
 ): Promise<T> {
   const [whereClause, whereValues] = constructWhereClause(wheres);
@@ -65,7 +65,7 @@ ${whereClause}
 export function selectAll<T>(
   database: Database,
   table: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   wheres: Record<string, ValueType> = {},
 ): T[] {
   const [whereClause, whereValues] = constructWhereClause(wheres);

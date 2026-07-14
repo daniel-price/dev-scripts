@@ -100,7 +100,7 @@ function read(fileName: string, options?: Partial<ReadOptions>): string {
 
 export function readCsv<T>(
   fileName: string,
-  runType: R.Runtype<T>,
+  runType: R.Runtype.Core<T>,
   options?: Partial<ReadOptions>,
 ): Array<T> {
   const fileContent = read(fileName, options);
@@ -114,7 +114,7 @@ export function readCsv<T>(
 
 export function readJson<T>(
   fileName: string,
-  runType: R.Runtype<T>,
+  runType: R.Runtype.Core<T>,
   options?: Partial<ReadOptions> & { mapFn?: (line: string) => T },
 ): T {
   const fileContent = read(fileName, options);
@@ -124,7 +124,7 @@ export function readJson<T>(
 
 export function readLines<T>(
   fileName: string,
-  runType: R.Runtype<T>,
+  runType: R.Runtype.Core<T>,
   options?: Partial<ReadOptions> & { mapFn?: (line: string) => T },
 ): Array<T> {
   const fileContent = read(fileName, options);
@@ -182,7 +182,7 @@ export function getFilesRecursively(
 export function transformCsvRows<T>(
   fileNames: string[],
   directory: E_DIRECTORIES,
-  r: R.Runtype<T>,
+  r: R.Runtype.Core<T>,
   transformFn: (row: T) => T | undefined,
 ): void {
   for (const fileName of fileNames) {

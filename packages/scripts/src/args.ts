@@ -1,7 +1,18 @@
 import { Clipboard, Prompt, R } from "@dev/util";
 import { HasDefault } from "@dev/util/src/types";
 
-export type ArgRuntype = Parameters<typeof R.Record>[0][string];
+export type ArgRuntype = Parameters<typeof R.Object>[0][string];
+
+/**
+ * Static type of an argument runtype. Unlike `R.Static`, this also handles
+ * `Optional` (produced by `.optional()`), which is a pseudo-runtype and so
+ * isn't accepted by `R.Static` directly.
+ */
+type StaticOfArg<T> = T extends R.Optional<infer Inner>
+  ? R.Static<Inner> | undefined
+  : T extends R.Runtype.Core
+  ? R.Static<T>
+  : never;
 
 /** Use as `default: clipboard` on required string args to read the initial value from the clipboard. */
 export const clipboard = Symbol("clipboard");
@@ -10,14 +21,14 @@ export function isClipboardDefault(value: unknown): value is typeof clipboard {
   return value === clipboard;
 }
 
-type RequiredArgDefault<Inner extends ArgRuntype> = [R.Static<Inner>] extends [
-  string,
-]
+type RequiredArgDefault<Inner extends ArgRuntype> = [
+  StaticOfArg<Inner>,
+] extends [string]
   ? typeof clipboard
   : never;
 
 type OptionalArgFieldFor<Inner extends ArgRuntype> = {
-  default?: R.Static<Inner>;
+  default?: StaticOfArg<Inner>;
 };
 
 type RequiredArgFieldFor<Inner extends ArgRuntype = ArgRuntype> = {
@@ -157,8 +168,8 @@ export type ArgRuntypeSchema<A extends ArgSchema> = {
 
 type InferArgField<F> = F extends { type: infer T extends ArgRuntype }
   ? HasDefault<F> extends true
-    ? Exclude<R.Static<T>, undefined>
-    : R.Static<T>
+    ? Exclude<StaticOfArg<T>, undefined>
+    : StaticOfArg<T>
   : never;
 
 export type InferArgs<A extends ArgSchema> = {
@@ -238,5 +249,5 @@ export async function parseArgs<A extends ArgSchema>(
     argRuntypeSchema[fieldName] = argSchema[fieldName].type;
   }
 
-  return R.assertType(R.Record(argRuntypeSchema), withDefaults) as InferArgs<A>;
+  return R.assertType(R.Object(argRuntypeSchema), withDefaults) as InferArgs<A>;
 }

@@ -93,7 +93,7 @@ export async function get(
 export function scan<T>(
   client: DynamoDBClient,
   tableName: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options: Partial<ScanInput> = {},
 ): AsyncGenerator<T> {
   const params: ScanInput = {
@@ -125,7 +125,7 @@ export function scan<T>(
 async function fetchPartiqlPage<T>(
   client: DynamoDBClient,
   statement: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   token?: string,
 ): Promise<Paginate.Page<T, string>> {
   let data;
@@ -162,7 +162,7 @@ async function fetchPartiqlPage<T>(
 export async function partiql<T>(
   client: DynamoDBClient,
   statement: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   nextToken?: string,
 ): Promise<T[]> {
   return Paginate.paginate<T, string>(

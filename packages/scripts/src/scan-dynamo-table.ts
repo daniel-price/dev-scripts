@@ -3,7 +3,7 @@ import { Logger, R } from "@dev/util";
 
 import { defineScript } from "./script";
 
-const R_TableItem = R.Record({
+const R_TableItem = R.Object({
   id: R.String,
 });
 

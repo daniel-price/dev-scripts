@@ -33,7 +33,7 @@ export async function getStringSecret(
 export async function getJsonSecret<T>(
   client: SecretsManagerClient,
   secretId: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Promise<T> {
   const string = await getStringSecret(client, secretId);
   return Json.parse(string, runtype);

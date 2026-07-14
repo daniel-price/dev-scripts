@@ -123,15 +123,15 @@ async function removeFromRecentlyOpenedFiles(
     const typedResult = await SqlLite.select(
       db,
       "ItemTable",
-      R.Record({ key: R.String, value: R.String }),
+      R.Object({ key: R.String, value: R.String }),
       { key: "history.recentlyOpenedPathsList" },
     );
 
     const parsedResult = Json.parse(
       typedResult.value,
-      R.Record({
+      R.Object({
         entries: R.Array(
-          R.Record({ folderUri: R.String }).Or(R.Record({ fileUri: R.String })),
+          R.Object({ folderUri: R.String }).or(R.Object({ fileUri: R.String })),
         ),
       }),
     );

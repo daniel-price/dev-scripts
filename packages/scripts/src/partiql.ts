@@ -18,7 +18,7 @@ export default defineScript({
 SELECT attempts_left
 FROM "${TABLE}"
 `,
-      R.Record({ attempts_left: R.Number.optional() }),
+      R.Object({ attempts_left: R.Number.optional() }),
     );
 
     const locked = all.filter((item) => item.attempts_left === 0);

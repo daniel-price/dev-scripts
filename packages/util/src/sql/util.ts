@@ -11,9 +11,8 @@ export type CommonOptions = {
   wheres?: Wheres;
 };
 
-export const defaultRowRuntype = R.Record({}) as R.Runtype<
-  Record<string, unknown>
->;
+export const defaultRowRuntype: R.Runtype.Core<Record<string, unknown>> =
+  R.Record(R.String, R.Unknown);
 
 export function prefixedTableName(
   table: string,

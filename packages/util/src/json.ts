@@ -12,7 +12,7 @@ export function stringify(obj: string | object, prettyPrint = true): string {
   }
 }
 
-export function parse<T>(jsonString: string, runtype: R.Runtype<T>): T {
+export function parse<T>(jsonString: string, runtype: R.Runtype.Core<T>): T {
   try {
     const parsed = JSON.parse(jsonString, reviver);
     return R.assertType(runtype, parsed);
@@ -28,7 +28,7 @@ export function parse<T>(jsonString: string, runtype: R.Runtype<T>): T {
 
 export function parseArray<T>(
   jsonString: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Array<T> {
   const result = parse(jsonString, R.Array(runtype));
   if (!Array.isArray(result))

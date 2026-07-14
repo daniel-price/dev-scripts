@@ -39,7 +39,7 @@ export function listParameters(
 export async function getJSONParameterValue<T>(
   client: SSM,
   name: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Promise<T> {
   const params = {
     Name: name,
@@ -74,7 +74,7 @@ export async function updateJSONParameter(
 export async function getParameterValue<T>(
   client: SSM,
   name: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Promise<T> {
   const params = {
     Name: name,

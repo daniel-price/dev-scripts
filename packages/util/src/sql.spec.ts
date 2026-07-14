@@ -390,7 +390,7 @@ describe("Sql", () => {
 
     //Check runtype validation
     const selected = await select(client, nullUpdateTableName).runtype(
-      R.Record({ age: R.Number, id: R.Number, name: R.Nullable(R.String) }),
+      R.Object({ age: R.Number, id: R.Number, name: R.Nullable(R.String) }),
     );
 
     for (const record of selected.records) {

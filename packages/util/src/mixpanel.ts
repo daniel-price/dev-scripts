@@ -14,7 +14,7 @@ export async function runScript<T>(
   bearerToken: string,
   projectId: string,
   script: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Promise<T[]> {
   const queryParams: Record<string, string | undefined> = {
     project_id: projectId,
@@ -41,7 +41,7 @@ export async function listEvents<T>(
   bearerToken: string,
   projectId: string,
   eventNames: string[],
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   params: Partial<ListEventsParams> = {},
 ): Promise<T[]> {
   const fromDate = DateUtil.format(
@@ -76,7 +76,7 @@ export async function listEvents<T>(
 export async function listProfile<T>(
   bearerToken: string,
   projectId: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   distinctId: string,
 ): Promise<T | null> {
   const base64EncodedBearerToken = Buffer.from(bearerToken).toString("base64");
@@ -99,7 +99,7 @@ export async function listProfile<T>(
     },
   );
 
-  const parsedRes = Json.parse(res, R.Record({ results: R.Array(runtype) }));
+  const parsedRes = Json.parse(res, R.Object({ results: R.Array(runtype) }));
 
   Logger.info("Mixpanel profile response:", res);
 

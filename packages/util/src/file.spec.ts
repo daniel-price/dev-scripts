@@ -69,16 +69,16 @@ describe("File", () => {
       FileUtil.write(fileName, json, { directory });
       const readJson = FileUtil.readJson(
         fileName,
-        R.Record({
-          results: R.Dictionary(
-            R.Record({
+        R.Object({
+          results: R.Record(
+            R.String,
+            R.Object({
               string: R.String,
               number: R.Number,
               set: R.SetOf(R.Number),
               map: R.MapOf(R.String, R.Unknown),
               array: R.Array(R.Number),
             }),
-            R.String,
           ),
           count: R.Number,
         }),
@@ -114,7 +114,7 @@ describe("File", () => {
 
       const readCsv = FileUtil.readCsv(
         fileName,
-        R.Record({ string: R.String, number: R.Number }),
+        R.Object({ string: R.String, number: R.Number }),
         { directory },
       );
 

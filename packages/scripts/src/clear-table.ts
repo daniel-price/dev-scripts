@@ -30,7 +30,7 @@ export default defineScript({
     const scanGenerator = DynamoDB.scan(
       dynamoClient,
       args.table,
-      R.Dictionary(R.Unknown),
+      R.Record(R.String, R.Unknown),
     );
 
     const keysGenerator = Async.map(scanGenerator, (i) =>

@@ -25,8 +25,8 @@ export type OptionMethods<
   TQuery,
   TOptions,
   Keys extends keyof TOptions & string,
-  ToRuntypeQuery extends <U>(runtype: R.Runtype<U>) => unknown = <U>(
-    _runtype: R.Runtype<U>,
+  ToRuntypeQuery extends <U>(runtype: R.Runtype.Core<U>) => unknown = <U>(
+    _runtype: R.Runtype.Core<U>,
   ) => TQuery,
 > = {
   [K in Keys]: K extends "runtype"

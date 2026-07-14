@@ -6,7 +6,7 @@ export async function query<T>(
   apiKey: string,
   accountId: number,
   query: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
 ): Promise<T[]> {
   const headers = {
     "Content-Type": "application/json",
@@ -17,18 +17,18 @@ export async function query<T>(
   const res = await Http.post(
     "https://api.eu.newrelic.com/graphql",
     R.Union(
-      R.Record({
-        data: R.Record({
-          actor: R.Record({
-            account: R.Record({
-              nrql: R.Record({
+      R.Object({
+        data: R.Object({
+          actor: R.Object({
+            account: R.Object({
+              nrql: R.Object({
                 results: R.Array(runtype),
               }),
             }),
           }),
         }),
       }),
-      R.Record({ errors: R.Array(R.Record({ message: R.String })) }),
+      R.Object({ errors: R.Array(R.Object({ message: R.String })) }),
     ),
     {
       headers,

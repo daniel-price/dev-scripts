@@ -33,7 +33,7 @@ describe("NewRelic", () => {
     FROM Log
     SINCE 1 week ago
   `,
-        R.Record({ count: R.Number }),
+        R.Object({ count: R.Number }),
       );
 
       expect(result).toEqual([{ count: 1 }]);

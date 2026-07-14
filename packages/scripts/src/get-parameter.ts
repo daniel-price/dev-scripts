@@ -12,7 +12,7 @@ export default defineScript({
     const res = await ParameterStore.getJSONParameterValue(
       ssm,
       `/param/${name}`,
-      R.Dictionary(R.String),
+      R.Record(R.String, R.String),
     );
     Logger.info("Parameter value:", res);
   },

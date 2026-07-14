@@ -45,7 +45,7 @@ function getRequestParams(method: string, options?: Options): RequestInit {
 async function doRequest<T>(
   url: string,
   method: "GET" | "POST" | "PUT" | "DELETE",
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options?: Options,
 ): Promise<T> {
   const fullUrl = options?.queryParams
@@ -77,7 +77,7 @@ async function doRequest<T>(
 
 export async function get<T>(
   url: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options?: Options,
 ): Promise<T> {
   return await doRequest(url, "GET", runtype, options);
@@ -85,7 +85,7 @@ export async function get<T>(
 
 export async function put<T>(
   url: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options?: Options,
 ): Promise<T> {
   return await doRequest(url, "PUT", runtype, options);
@@ -93,7 +93,7 @@ export async function put<T>(
 
 export async function post<T>(
   url: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options?: Options,
 ): Promise<T> {
   return await doRequest(url, "POST", runtype, options);
@@ -101,7 +101,7 @@ export async function post<T>(
 
 export async function del<T>(
   url: string,
-  runtype: R.Runtype<T>,
+  runtype: R.Runtype.Core<T>,
   options?: Options,
 ): Promise<T> {
   return await doRequest(url, "DELETE", runtype, options);

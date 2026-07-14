@@ -60,5 +60,5 @@ export function parseBytes(input: string): Record<string, unknown> {
   Logger.info("Parsed byte array:", byteArray);
 
   const jsonText = new TextDecoder().decode(Uint8Array.from(byteArray));
-  return Json.parse(jsonText, R.Record({}));
+  return Json.parse(jsonText, R.Object({}));
 }

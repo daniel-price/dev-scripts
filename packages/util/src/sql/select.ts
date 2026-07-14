@@ -22,7 +22,7 @@ type SelectResult<T> = {
 };
 
 type SelectOptionFieldTypes<T> = {
-  runtype: R.Runtype<T>;
+  runtype: R.Runtype.Core<T>;
 };
 
 type SelectOptionKey = keyof SelectOptionFieldTypes<unknown> & string;
@@ -40,7 +40,7 @@ export interface SelectQuery<T>
       SelectQuery<T>,
       SelectOptions<T>,
       SelectOptionKey,
-      <U>(runtype: R.Runtype<U>) => SelectQuery<U>
+      <U>(runtype: R.Runtype.Core<U>) => SelectQuery<U>
     > {}
 
 export function select(
@@ -99,7 +99,7 @@ ${constructWhere(options.wheres)}
   };
 
   return R.assertType(
-    R.Record({
+    R.Object({
       records: R.Array(options.runtype),
       count: R.Number,
       affectedRows: R.Nullable(R.Number),

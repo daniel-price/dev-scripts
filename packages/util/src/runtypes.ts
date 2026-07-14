@@ -7,7 +7,7 @@ export { TypeValidationError } from "./runtypes/type-validation-error";
 export * from "runtypes";
 export type RunTypeBase = R.Runtype.Core;
 
-export function isOptionalRuntype(type: R.Runtype.Core): boolean {
+export function isOptionalRuntype(type: R.Runtype.Core | R.Optional): boolean {
   return isObject(type) && "tag" in type && type.tag === "optional";
 }
 
@@ -30,8 +30,14 @@ export function isBooleanRuntype(type: unknown): boolean {
   return getRuntypeTag(type) === "boolean";
 }
 
-export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
-  const result = runtype.inspect(actualData);
+export function assertType<T>(
+  runtype: R.Runtype.Core<T>,
+  actualData: unknown,
+): T {
+  // Validate only, don't parse: v7 parsing transforms the value (e.g. `Object`
+  // strips undeclared keys), whereas we want the original data back unchanged,
+  // matching v6 `.validate()` semantics.
+  const result = runtype.inspect(actualData, { parse: false });
   if (result.success) {
     return result.value;
   }
