@@ -1,5 +1,10 @@
 import * as R from "../runtypes";
-import { asQuery, attachQuery, ComposedQuery, OptionMethods } from "./query-builder";
+import {
+  asQuery,
+  attachQuery,
+  ComposedQuery,
+  OptionMethods,
+} from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -22,7 +27,9 @@ type SelectOptionFieldTypes<T> = {
 
 type SelectOptionKey = keyof SelectOptionFieldTypes<unknown> & string;
 
-const selectOptionKeys = ["runtype"] as const satisfies readonly SelectOptionKey[];
+const selectOptionKeys = [
+  "runtype",
+] as const satisfies readonly SelectOptionKey[];
 
 export type SelectOptions<T = Record<string, unknown>> = CommonOptions &
   Pick<SelectOptionFieldTypes<T>, SelectOptionKey>;

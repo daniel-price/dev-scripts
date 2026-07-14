@@ -124,11 +124,7 @@ export function attachQuery<
   void Object.assign(
     target,
     bindQueryState(state, config.methods),
-    bindOptionMethods(
-      config.options,
-      config.recreate,
-      config.optionKeys ?? [],
-    ),
+    bindOptionMethods(config.options, config.recreate, config.optionKeys ?? []),
     queryThen(config.execute),
   );
 }

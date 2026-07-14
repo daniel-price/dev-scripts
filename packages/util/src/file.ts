@@ -196,3 +196,14 @@ export function transformCsvRows<T>(
     });
   }
 }
+
+export function getMostRecentFile(): string | undefined {
+  const files = fs.readdirSync(E_DIRECTORIES.RESULTS);
+  const sortedFiles = files.map((file) => ({
+    file,
+    mtime: fs.statSync(`${E_DIRECTORIES.RESULTS}${file}`).mtime,
+  }));
+
+  return sortedFiles.sort((a, b) => b.mtime.getTime() - a.mtime.getTime())[0]
+    ?.file;
+}
