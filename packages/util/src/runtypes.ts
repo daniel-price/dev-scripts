@@ -1,14 +1,13 @@
 import * as R from "runtypes";
-import { RuntypeBase } from "runtypes/lib/runtype";
 
 import { TypeValidationError } from "./runtypes/type-validation-error";
 import { isObject } from "./util";
 
 export { TypeValidationError } from "./runtypes/type-validation-error";
 export * from "runtypes";
-export type RunTypeBase = RuntypeBase;
+export type RunTypeBase = R.Runtype.Core;
 
-export function isOptionalRuntype(type: RuntypeBase): boolean {
+export function isOptionalRuntype(type: R.Runtype.Core): boolean {
   return isObject(type) && "tag" in type && type.tag === "optional";
 }
 
@@ -32,14 +31,12 @@ export function isBooleanRuntype(type: unknown): boolean {
 }
 
 export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
-  const result = runtype.validate(actualData);
-  const { success } = result;
-  if (success) {
-    const { value } = result;
-    return value;
+  const result = runtype.inspect(actualData);
+  if (result.success) {
+    return result.value;
   }
 
-  const { details } = result;
+  const details = "details" in result ? result.details : undefined;
 
   throw new TypeValidationError({
     kind: "validation",
@@ -49,27 +46,29 @@ export function assertType<T>(runtype: R.Runtype<T>, actualData: unknown): T {
   });
 }
 
-export function SetOf<E extends RuntypeBase>(
+export function SetOf<E extends R.Runtype.Core>(
   element: E,
-): R.Runtype<Set<R.Static<typeof element>>> {
+): R.Runtype.Core<Set<R.Static<typeof element>>> {
   return R.InstanceOf(Set).withGuard(
     (x: Set<unknown>): x is Set<R.Static<typeof element>> =>
-      [...x].every(element.guard),
+      [...x].every((item) => element.guard(item)),
   );
 }
 
-export function MapOf<E extends RuntypeBase, V extends RuntypeBase>(
+export function MapOf<E extends R.Runtype.Core, V extends R.Runtype.Core>(
   key: E,
   value: V,
-): R.Runtype<Map<R.Static<typeof key>, R.Static<typeof value>>> {
+): R.Runtype.Core<Map<R.Static<typeof key>, R.Static<typeof value>>> {
   return R.InstanceOf(Map).withGuard(
-    (x: Map<unknown, unknown>): x is Map<R.Static<typeof key>, typeof value> =>
-      Object.entries(x).every(([k, v]) => key.guard(k) && value.guard(v)),
+    (
+      x: Map<unknown, unknown>,
+    ): x is Map<R.Static<typeof key>, R.Static<typeof value>> =>
+      [...x.entries()].every(([k, v]) => key.guard(k) && value.guard(v)),
   );
 }
 export function runtypeFromEnum<EnumType>(
   enum_: Record<string, EnumType>,
-): R.Runtype<EnumType> {
+): R.Runtype.Core<EnumType> {
   const values = Object.values<unknown>(enum_);
   const isEnumValue = (input: unknown): input is EnumType =>
     values.includes(input);
@@ -82,8 +81,8 @@ export function runtypeFromEnum<EnumType>(
   );
 }
 
-export function Nullable<R extends R.Runtype>(
-  runtype: R,
-): R.Runtype<R.Static<R> | null> {
-  return runtype.Or(R.Null);
+export function Nullable<T extends R.Runtype>(
+  runtype: T,
+): R.Runtype.Core<R.Static<T> | null> {
+  return runtype.or(R.Null);
 }
