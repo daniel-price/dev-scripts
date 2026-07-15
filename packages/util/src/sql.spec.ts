@@ -6,6 +6,7 @@ import { describe, expect, it } from "bun:test";
 import { R, Sql } from "..";
 import { withQueryLogging } from "./sql";
 import { select } from "./sql/select";
+import { select2 } from "./sql/select-spike";
 
 const { SQL } = bunSql;
 
@@ -413,5 +414,11 @@ describe("Sql", () => {
       'CREATE TABLE IF NOT EXISTS "stage_null_update_test_table" (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)',
       `SELECT * FROM "stage_null_update_test_table"`,
     ]);
+
+    const a = await select2(
+      client,
+      nullUpdateTableName,
+      R.Object({ hello: R.String }),
+    );
   });
 });
