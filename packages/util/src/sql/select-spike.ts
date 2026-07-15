@@ -15,11 +15,6 @@ type SelectResult<T> = {
   lastInsertRowid: number | null;
 };
 
-const optionKeys = [
-  "tablePrefix",
-  "wheres",
-] as const satisfies readonly (keyof SelectOptions)[];
-
 type SelectOptions = CommonOptions;
 
 type WithOptionMethods<TOptions, TSelf> = {
@@ -61,12 +56,12 @@ export function doTheThing<
   TOptions extends Record<string, unknown>,
   TSelf,
   const Keys extends readonly (keyof TOptions & string)[],
->(config: {
-  execute: () => Promise<TResult>;
-  optionKeys: Keys;
-  options: Partial<TOptions>;
-  recreate: (next: Partial<TOptions>) => TSelf;
-}): PromiseLike<TResult> &
+>(
+  execute: () => Promise<TResult>,
+  optionKeys: Keys,
+  options: Partial<TOptions>,
+  recreate: (next: Partial<TOptions>) => TSelf,
+): PromiseLike<TResult> &
   Pick<
     WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
     `with${Capitalize<Keys[number]>}`
@@ -79,8 +74,8 @@ export function doTheThing<
 
   void Object.assign(
     query,
-    queryThen(config.execute),
-    bindWithOptionMethods(config.options, config.recreate, config.optionKeys),
+    queryThen(execute),
+    bindWithOptionMethods(options, recreate, optionKeys),
   );
 
   return query;
@@ -92,13 +87,12 @@ export function select2<T>(
   runtype: R.Runtype.Core<T>,
   options: Partial<SelectOptions> = {},
 ): SelectQuery<T> {
-  return doTheThing({
-    execute: () =>
-      selectInternal(client, table, runtype, options as SelectOptions),
-    optionKeys,
+  return doTheThing(
+    () => selectInternal(client, table, runtype, options),
+    ["tablePrefix", "wheres"],
     options,
-    recreate: (next) => select2(client, table, runtype, next),
-  });
+    (next) => select2(client, table, runtype, next),
+  );
 }
 
 async function selectInternal<T>(
