@@ -34,6 +34,12 @@ export type OptionMethods<
     : (value: TOptions[K]) => TQuery;
 };
 
+export type WithOptionMethods<TOptions, TSelf> = {
+  [K in keyof TOptions & string as `with${Capitalize<K>}`]: (
+    value: TOptions[K],
+  ) => TSelf;
+};
+
 export function asQuery<TQuery>(query: object): TQuery {
   return query as TQuery;
 }
@@ -84,6 +90,30 @@ export function bindOptionMethods<
   ) as Pick<OptionMethods<TQuery, TOptions, Keys[number]>, Keys[number]>;
 }
 
+export function bindWithOptionMethods<
+  TOptions extends Record<string, unknown>,
+  TSelf,
+  const Keys extends readonly (keyof TOptions & string)[],
+>(
+  options: Partial<TOptions>,
+  recreate: (next: Partial<TOptions>) => TSelf,
+  keys: Keys,
+): Pick<
+  WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+  `with${Capitalize<Keys[number]>}`
+> {
+  return Object.fromEntries(
+    keys.map((key) => [
+      `with${key[0].toUpperCase()}${key.slice(1)}`,
+      (value: TOptions[typeof key]): TSelf =>
+        recreate({ ...options, [key]: value }),
+    ]),
+  ) as unknown as Pick<
+    WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+    `with${Capitalize<Keys[number]>}`
+  >;
+}
+
 export function queryThen<TResult>(
   execute: () => Promise<TResult>,
 ): Pick<PromiseLike<TResult>, "then"> {
@@ -101,6 +131,36 @@ export function queryThen<TResult>(
       return execute().then(onfulfilled, onrejected);
     },
   };
+}
+
+export function composeWithOptionQuery<
+  TResult,
+  TOptions extends Record<string, unknown>,
+  TSelf,
+  const Keys extends readonly (keyof TOptions & string)[],
+>(
+  execute: () => Promise<TResult>,
+  optionKeys: Keys,
+  options: Partial<TOptions>,
+  recreate: (next: Partial<TOptions>) => TSelf,
+): PromiseLike<TResult> &
+  Pick<
+    WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+    `with${Capitalize<Keys[number]>}`
+  > {
+  const query = {} as PromiseLike<TResult> &
+    Pick<
+      WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+      `with${Capitalize<Keys[number]>}`
+    >;
+
+  void Object.assign(
+    query,
+    queryThen(execute),
+    bindWithOptionMethods(options, recreate, optionKeys),
+  );
+
+  return query;
 }
 
 export function attachQuery<
