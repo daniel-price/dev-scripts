@@ -80,11 +80,7 @@ export function doTheThing<
   void Object.assign(
     query,
     queryThen(config.execute),
-    bindWithOptionMethods(
-      config.options,
-      config.recreate,
-      config.optionKeys,
-    ),
+    bindWithOptionMethods(config.options, config.recreate, config.optionKeys),
   );
 
   return query;
