@@ -1,15 +1,8 @@
 import * as R from "../runtypes";
-import {
-  asQuery,
-  attachQuery,
-  ComposedQuery,
-  OptionMethods,
-  queryThen,
-} from "./query-builder";
+import { queryThen } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
-  defaultRowRuntype,
   prefixedTableName,
   SQL,
   sql,
@@ -35,16 +28,66 @@ type WithOptionMethods<TOptions, TSelf> = {
   ) => TSelf;
 };
 
-type SelectQuery<T> = PromiseLike<SelectResult<T>> & {
-  withWheres: (wheres: Record<string, unknown>) => SelectQuery<T>;
-  withTablePrefix: (tablePrefix: string) => SelectQuery<T>;
-};
+export interface SelectQuery<T>
+  extends PromiseLike<SelectResult<T>>,
+    WithOptionMethods<SelectOptions, SelectQuery<T>> {}
 
-export function doTheThing(then, optionFields) {
-  return {
-    ...queryThen(then),
-    //... some more cleverness to get the withX methods
-  };
+function bindWithOptionMethods<
+  TOptions extends Record<string, unknown>,
+  TSelf,
+  const Keys extends readonly (keyof TOptions & string)[],
+>(
+  options: Partial<TOptions>,
+  recreate: (next: Partial<TOptions>) => TSelf,
+  keys: Keys,
+): Pick<
+  WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+  `with${Capitalize<Keys[number]>}`
+> {
+  return Object.fromEntries(
+    keys.map((key) => [
+      `with${key[0].toUpperCase()}${key.slice(1)}`,
+      (value: TOptions[typeof key]): TSelf =>
+        recreate({ ...options, [key]: value }),
+    ]),
+  ) as unknown as Pick<
+    WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+    `with${Capitalize<Keys[number]>}`
+  >;
+}
+
+export function doTheThing<
+  TResult,
+  TOptions extends Record<string, unknown>,
+  TSelf,
+  const Keys extends readonly (keyof TOptions & string)[],
+>(config: {
+  execute: () => Promise<TResult>;
+  optionKeys: Keys;
+  options: Partial<TOptions>;
+  recreate: (next: Partial<TOptions>) => TSelf;
+}): PromiseLike<TResult> &
+  Pick<
+    WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+    `with${Capitalize<Keys[number]>}`
+  > {
+  const query = {} as PromiseLike<TResult> &
+    Pick<
+      WithOptionMethods<Pick<TOptions, Keys[number]>, TSelf>,
+      `with${Capitalize<Keys[number]>}`
+    >;
+
+  void Object.assign(
+    query,
+    queryThen(config.execute),
+    bindWithOptionMethods(
+      config.options,
+      config.recreate,
+      config.optionKeys,
+    ),
+  );
+
+  return query;
 }
 
 export function select2<T>(
@@ -53,27 +96,13 @@ export function select2<T>(
   runtype: R.Runtype.Core<T>,
   options: Partial<SelectOptions> = {},
 ): SelectQuery<T> {
-  return doTheThing(
-    () => selectInternal(client, table, runtype, options),
-    ["wheres", "tablePrefix"],
-  );
-  // return {
-  //   ...queryThen(() => selectInternal(client, table, runtype, options)),
-  //
-  //   withWheres: (wheres) => {
-  //     return select2(client, table, runtype, {
-  //       ...options,
-  //       wheres,
-  //     });
-  //   },
-  //
-  //   withTablePrefix: (tablePrefix) => {
-  //     return select2(client, table, runtype, {
-  //       ...options,
-  //       tablePrefix,
-  //     });
-  //   },
-  // };
+  return doTheThing({
+    execute: () =>
+      selectInternal(client, table, runtype, options as SelectOptions),
+    optionKeys,
+    options,
+    recreate: (next) => select2(client, table, runtype, next),
+  });
 }
 
 async function selectInternal<T>(

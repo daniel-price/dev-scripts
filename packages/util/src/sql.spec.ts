@@ -415,10 +415,10 @@ describe("Sql", () => {
       `SELECT * FROM "stage_null_update_test_table"`,
     ]);
 
-    const a = await select2(
+    await select2(
       client,
       nullUpdateTableName,
-      R.Object({ hello: R.String }),
-    );
+      R.Object({ age: R.Number, id: R.Number, name: R.Nullable(R.String) }),
+    ).withTablePrefix("stage");
   });
 });
