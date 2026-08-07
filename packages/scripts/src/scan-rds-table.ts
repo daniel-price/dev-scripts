@@ -19,9 +19,11 @@ export default defineScript({
   },
   run: async (args) => {
     const client = getSqlClient();
-    const items = await Sql.select(client, args.table).tablePrefix(
-      args.stagePrefix,
-    );
+    const items = await Sql.select(
+      client,
+      args.table,
+      R.Record(R.String, R.Unknown),
+    ).withTablePrefix(args.stagePrefix);
     for (const item of items.records) {
       Logger.info("TableItems:", item);
     }

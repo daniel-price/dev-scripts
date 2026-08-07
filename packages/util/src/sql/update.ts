@@ -1,4 +1,4 @@
-import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
+import { composeWithOptionQuery, WithOptionMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -9,50 +9,36 @@ import {
 
 type UpdateOptions = CommonOptions;
 
-export interface UpdateQuery extends ComposedQuery<UpdateQuery, void> {}
+interface UpdateQuery
+  extends PromiseLike<void>,
+    WithOptionMethods<UpdateOptions, UpdateQuery> {}
 
 export function update<T extends Record<string, unknown>>(
   client: SQL,
   table: string,
   set: T,
+  options: Partial<UpdateOptions> = {},
 ): UpdateQuery {
-  return asQuery<UpdateQuery>(new UpdateQueryImpl(client, table, set, {}));
+  return composeWithOptionQuery(
+    () => updateInternal(client, table, set, options),
+    ["tablePrefix", "wheres"],
+    options,
+    (next) => update(client, table, set, next),
+  );
 }
 
-class UpdateQueryImpl {
-  constructor(
-    private readonly client: SQL,
-    private readonly table: string,
-    private readonly set: Record<string, unknown>,
-    private readonly options: UpdateOptions,
-  ) {
-    attachQuery(this, {
-      options,
-      recreate: (next) =>
-        asQuery<UpdateQuery>(
-          new UpdateQueryImpl(this.client, this.table, this.set, next),
-        ),
-      execute: () =>
-        updateInternal(this.client, this.table, this.set, this.options),
-    });
-  }
-}
-
-export async function updateInternal(
+async function updateInternal<T extends Record<string, unknown>>(
   client: SQL,
   table: string,
-  set: Record<string, unknown>,
-  options: UpdateOptions = {},
+  set: T,
+  options: UpdateOptions,
 ): Promise<void> {
-  const tableName = prefixedTableName(table, options);
-
   const setClause = Object.entries(set)
     .map(([key, value]) => sql`${sql(key)} = ${value}`)
     .reduce((prev, curr, idx) => (idx === 0 ? curr : sql`${prev}, ${curr}`));
 
-  const query = client`
-UPDATE ${sql(tableName)} 
-SET ${setClause} 
+  await client`
+UPDATE ${sql(prefixedTableName(table, options))}
+SET ${setClause}
 ${constructWhere(options.wheres)}`;
-  await query;
 }

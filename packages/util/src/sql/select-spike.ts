@@ -35,28 +35,6 @@ export function select2<T>(
   );
 }
 
-type BunSqlResult<T> = T[] & {
-  count: number;
-  affectedRows: number | null;
-  lastInsertRowid: number | null;
-};
-
-function bunSqlResultRuntype<T>(
-  rowRuntype: R.Runtype.Core<T>,
-): R.Runtype.Core<BunSqlResult<T>> {
-  const arrayPart = R.Array(rowRuntype);
-  const fieldsPart = R.Object({
-    count: R.Number,
-    affectedRows: R.Nullable(R.Number),
-    lastInsertRowid: R.Nullable(R.Number),
-  });
-
-  return R.Unknown.withGuard(
-    (value): value is BunSqlResult<T> =>
-      arrayPart.guard(value) && fieldsPart.guard(value),
-  );
-}
-
 async function selectInternal<T>(
   client: SQL,
   table: string,
@@ -68,14 +46,16 @@ SELECT *
 FROM ${sql(prefixedTableName(table, options))}
 ${constructWhere(options.wheres)}
 `;
-
-  const rawResultParsed = R.assertType(bunSqlResultRuntype(runtype), rawResult);
-
   const result = {
-    records: Array.from(rawResultParsed),
-    count: rawResultParsed.count,
-    affectedRows: rawResultParsed.affectedRows,
-    lastInsertRowid: rawResultParsed.lastInsertRowid,
+    records: R.assertType(R.Array(runtype), rawResult),
+    ...R.assertType(
+      R.Object({
+        count: R.Number,
+        affectedRows: R.Nullable(R.Number),
+        lastInsertRowid: R.Nullable(R.Number),
+      }),
+      rawResult,
+    ),
   };
 
   return R.assertType(
