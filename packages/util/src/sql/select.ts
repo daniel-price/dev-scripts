@@ -1,14 +1,8 @@
 import * as R from "../runtypes";
-import {
-  asQuery,
-  attachQuery,
-  ComposedQuery,
-  OptionMethods,
-} from "./query-builder";
+import { composeWithOptionQuery, WithOptionMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
-  defaultRowRuntype,
   prefixedTableName,
   SQL,
   sql,
@@ -21,90 +15,65 @@ type SelectResult<T> = {
   lastInsertRowid: number | null;
 };
 
-type SelectOptionFieldTypes<T> = {
-  runtype: R.Runtype.Core<T>;
-};
+type SelectOptions = CommonOptions;
 
-type SelectOptionKey = keyof SelectOptionFieldTypes<unknown> & string;
+interface SelectQuery<T>
+  extends PromiseLike<SelectResult<T>>,
+    WithOptionMethods<SelectOptions, SelectQuery<T>> {}
 
-const selectOptionKeys = [
-  "runtype",
-] as const satisfies readonly SelectOptionKey[];
-
-export type SelectOptions<T = Record<string, unknown>> = CommonOptions &
-  Pick<SelectOptionFieldTypes<T>, SelectOptionKey>;
-
-export interface SelectQuery<T>
-  extends ComposedQuery<SelectQuery<T>, SelectResult<T>>,
-    OptionMethods<
-      SelectQuery<T>,
-      SelectOptions<T>,
-      SelectOptionKey,
-      <U>(runtype: R.Runtype.Core<U>) => SelectQuery<U>
-    > {}
-
-export function select(
+export function select<T>(
   client: SQL,
   table: string,
-): SelectQuery<Record<string, unknown>> {
-  return asQuery<SelectQuery<Record<string, unknown>>>(
-    new SelectQueryImpl(client, table, { runtype: defaultRowRuntype }),
+  runtype: R.Runtype.Core<T>,
+  options: Partial<SelectOptions> = {},
+): SelectQuery<T> {
+  return composeWithOptionQuery(
+    () => selectInternal(client, table, runtype, options),
+    ["tablePrefix", "wheres"],
+    options,
+    (next) => select(client, table, runtype, next),
   );
-}
-
-class SelectQueryImpl<T> {
-  constructor(
-    private readonly client: SQL,
-    private readonly table: string,
-    private readonly options: SelectOptions<T>,
-  ) {
-    attachQuery(this, {
-      options,
-      optionKeys: selectOptionKeys,
-      recreate: (next) =>
-        asQuery<SelectQuery<T>>(
-          new SelectQueryImpl(this.client, this.table, next),
-        ),
-      execute: () => selectInternal(this.client, this.table, this.options),
-    });
-  }
 }
 
 async function selectInternal<T>(
   client: SQL,
   table: string,
-  options: SelectOptions<T>,
+  runtype: R.Runtype.Core<T>,
+  options: SelectOptions,
 ): Promise<SelectResult<T>> {
-  const query = client`
+  const rawResult: unknown = await client`
 SELECT *
 FROM ${sql(prefixedTableName(table, options))}
 ${constructWhere(options.wheres)}
 `;
 
-  const result = await query;
+  const isExpectedShape =
+    rawResult &&
+    Array.isArray(rawResult) &&
+    "count" in rawResult &&
+    "affectedRows" in rawResult &&
+    "lastInsertRowid" in rawResult;
 
-  if (!(result && typeof result === "object")) {
-    throw new Error("Unexpected result from database query");
+  if (!isExpectedShape) {
+    throw new Error(`Unexpected result shape from database query`, {
+      cause: rawResult,
+    });
   }
 
-  const records = Object.keys(result)
-    .filter((k) => !isNaN(Number(k)))
-    .map((key) => result[key]);
-
-  const finalResult = {
-    records,
-    count: result.count,
-    affectedRows: result.affectedRows,
-    lastInsertRowid: result.lastInsertRowid,
+  const result = {
+    records: Array.from(rawResult),
+    count: rawResult.count,
+    affectedRows: rawResult.affectedRows,
+    lastInsertRowid: rawResult.lastInsertRowid,
   };
 
   return R.assertType(
     R.Object({
-      records: R.Array(options.runtype),
+      records: R.Array(runtype),
       count: R.Number,
       affectedRows: R.Nullable(R.Number),
       lastInsertRowid: R.Nullable(R.Number),
     }),
-    finalResult,
+    result,
   );
 }

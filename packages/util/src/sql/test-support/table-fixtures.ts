@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 
 import * as R from "../../runtypes";
 import { insert } from "../insert";
-import { sql, SQL } from "../util";
+import { SQL, sql } from "../util";
 
 export const personRuntype = R.Object({
   age: R.Number,

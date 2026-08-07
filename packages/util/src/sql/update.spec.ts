@@ -81,8 +81,11 @@ describe("Sql.update", () => {
     ]);
     expectParamStatements(statements, [[null, 1]]);
 
-    const result = await select(env.client, table, personNullableNameRuntype)
-      .withWheres({ id: 1 });
+    const result = await select(
+      env.client,
+      table,
+      personNullableNameRuntype,
+    ).withWheres({ id: 1 });
     expect(result.records).toEqual([{ id: 1, name: null, age: 10 }]);
   });
 

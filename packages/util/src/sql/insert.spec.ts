@@ -1,4 +1,11 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+} from "bun:test";
 
 import { insert } from "./insert";
 import {
