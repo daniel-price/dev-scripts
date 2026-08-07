@@ -35,33 +35,47 @@ export function select2<T>(
   );
 }
 
+type BunSqlResult<T> = T[] & {
+  count: number;
+  affectedRows: number | null;
+  lastInsertRowid: number | null;
+};
+
+function bunSqlResultRuntype<T>(
+  rowRuntype: R.Runtype.Core<T>,
+): R.Runtype.Core<BunSqlResult<T>> {
+  const arrayPart = R.Array(rowRuntype);
+  const fieldsPart = R.Object({
+    count: R.Number,
+    affectedRows: R.Nullable(R.Number),
+    lastInsertRowid: R.Nullable(R.Number),
+  });
+
+  return R.Unknown.withGuard(
+    (value): value is BunSqlResult<T> =>
+      arrayPart.guard(value) && fieldsPart.guard(value),
+  );
+}
+
 async function selectInternal<T>(
   client: SQL,
   table: string,
   runtype: R.Runtype.Core<T>,
   options: SelectOptions,
 ): Promise<SelectResult<T>> {
-  const query = client`
+  const rawResult: unknown = await client`
 SELECT *
 FROM ${sql(prefixedTableName(table, options))}
 ${constructWhere(options.wheres)}
 `;
 
-  const result = await query;
+  const rawResultParsed = R.assertType(bunSqlResultRuntype(runtype), rawResult);
 
-  if (!(result && typeof result === "object")) {
-    throw new Error("Unexpected result from database query");
-  }
-
-  const records = Object.keys(result)
-    .filter((k) => !isNaN(Number(k)))
-    .map((key) => result[key]);
-
-  const finalResult = {
-    records,
-    count: result.count,
-    affectedRows: result.affectedRows,
-    lastInsertRowid: result.lastInsertRowid,
+  const result = {
+    records: Array.from(rawResultParsed),
+    count: rawResultParsed.count,
+    affectedRows: rawResultParsed.affectedRows,
+    lastInsertRowid: rawResultParsed.lastInsertRowid,
   };
 
   return R.assertType(
@@ -71,6 +85,6 @@ ${constructWhere(options.wheres)}
       affectedRows: R.Nullable(R.Number),
       lastInsertRowid: R.Nullable(R.Number),
     }),
-    finalResult,
+    result,
   );
 }
