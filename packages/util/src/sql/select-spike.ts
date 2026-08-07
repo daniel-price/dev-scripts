@@ -17,12 +17,7 @@ type SelectResult<T> = {
 
 type SelectOptions = CommonOptions;
 
-const select2OptionKeys = [
-  "tablePrefix",
-  "wheres",
-] as const satisfies readonly (keyof SelectOptions)[];
-
-export interface SelectQuery<T>
+interface SelectQuery<T>
   extends PromiseLike<SelectResult<T>>,
     WithOptionMethods<SelectOptions, SelectQuery<T>> {}
 
@@ -34,7 +29,7 @@ export function select2<T>(
 ): SelectQuery<T> {
   return composeWithOptionQuery(
     () => selectInternal(client, table, runtype, options),
-    select2OptionKeys,
+    ["tablePrefix", "wheres"],
     options,
     (next) => select2(client, table, runtype, next),
   );

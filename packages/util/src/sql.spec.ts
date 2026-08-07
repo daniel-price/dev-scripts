@@ -4,7 +4,7 @@ import * as bunSql from "bun";
 import { describe, expect, it } from "bun:test";
 
 import { R, Sql } from "..";
-import { withQueryLogging } from "./sql";
+import { insert, withQueryLogging } from "./sql";
 import { select } from "./sql/select";
 import { select2 } from "./sql/select-spike";
 
@@ -338,7 +338,7 @@ describe("Sql", () => {
     });
   });
 
-  it("should update a field to null using wheres", async () => {
+  it("should select2", async () => {
     const nullUpdateTableName = "null_update_test_table";
 
     await client`DROP TABLE IF EXISTS ${Sql.sql(nullUpdateTableName)}`;
@@ -415,10 +415,78 @@ describe("Sql", () => {
       `SELECT * FROM "stage_null_update_test_table"`,
     ]);
 
-    await select2(
+    await insert(client, nullUpdateTableName, [
+      { id: 3, name: "name_3", age: 30 },
+      { id: 4, name: "name_4", age: 40 },
+    ]).tablePrefix("stage");
+    expect(db.getStatements()).toEqual([
+      `INSERT INTO "stage_null_update_test_table" ("id", "name", "age") VALUES($1, $2, $3),($4, $5, $6)`,
+      [3, "name_3", 30, 4, "name_4", 40],
+    ]);
+
+    const a = await select2(
       client,
       nullUpdateTableName,
       R.Object({ age: R.Number, id: R.Number, name: R.Nullable(R.String) }),
-    ).withTablePrefix("stage");
+    )
+      .withTablePrefix("stage")
+      .withWheres({ age: 30 });
+    expect(db.getStatements()).toEqual([
+      'SELECT * FROM "stage_null_update_test_table" WHERE "age" = $1',
+      [30],
+    ]);
+
+    // @ts-expect-error not_a_field is not a valid field in the runtype
+    expect(a.not_a_field).toBeUndefined();
+
+    expect(a.records).toEqual([
+      {
+        age: 30,
+        id: 3,
+        name: "name_3",
+      },
+    ]);
+
+    const ages = a.records.map((r) => {
+      return r.age;
+    });
+
+    expect(ages).toEqual([30]);
+
+    // @ts-expect-error not_a_field is not a valid field in the runtype
+    expect(ages.not_a_field).toBeUndefined();
+  });
+
+  it("should update a field to null using wheres", async () => {
+    const nullUpdateTableName = "null_update_test_table_2";
+
+    await client`DROP TABLE IF EXISTS ${Sql.sql(nullUpdateTableName)}`;
+
+    await client`CREATE TABLE IF NOT EXISTS ${Sql.sql(
+      nullUpdateTableName,
+    )} (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`;
+    expect(db.getStatements()).toEqual([
+      `DROP TABLE IF EXISTS "null_update_test_table_2"`,
+      `CREATE TABLE IF NOT EXISTS "null_update_test_table_2" (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`,
+    ]);
+
+    await Sql.insert(client, nullUpdateTableName, [
+      { id: 1, name: "name_1", age: 10 },
+      { id: 2, name: "name_2", age: 20 },
+    ]);
+
+    expect(db.getStatements()).toEqual([
+      `INSERT INTO "null_update_test_table_2" ("id", "name", "age") VALUES($1, $2, $3),($4, $5, $6)`,
+      [1, "name_1", 10, 2, "name_2", 20],
+    ]);
+
+    await Sql.update(client, nullUpdateTableName, { name: null }).where({
+      id: 1,
+    });
+
+    expect(db.getStatements()).toEqual([
+      `UPDATE "null_update_test_table_2" SET "name" = $1 WHERE "id" = $2`,
+      [null, 1],
+    ]);
   });
 });

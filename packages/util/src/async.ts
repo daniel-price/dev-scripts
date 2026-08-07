@@ -16,6 +16,16 @@ export async function* batch<T>(
   if (batch.length) yield batch; //yield remaining items even if they are smaller than batchSize
 }
 
+export async function* flatMap<T, R>(
+  asyncGenerator: AsyncGenerator<T>,
+  mapFn: (item: T) => Iterable<R> | R[],
+): AsyncGenerator<R> {
+  for await (const item of asyncGenerator) {
+    for (const mapped of mapFn(item)) {
+      yield mapped;
+    }
+  }
+}
 export async function* map<T, R>(
   asyncGenerator: AsyncGenerator<T>,
   mapFn: (item: T) => R,

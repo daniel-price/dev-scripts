@@ -108,3 +108,8 @@ export function info(...args: unknown[]): void {
     args,
   );
 }
+
+export function table(...args: unknown[]): void {
+  // eslint-disable-next-line no-console
+  console.table(...args);
+}

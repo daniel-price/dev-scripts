@@ -6,11 +6,12 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   ListBucketsCommand,
-  ListObjectsCommand,
+  paginateListObjectsV2,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { ChangeItems, Logger, Util } from "@dev/util";
+import { Async, ChangeItems, Logger, Util } from "@dev/util";
 import { changeItems } from "@dev/util/src/change-items";
+import { gunzipSync } from "bun";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
@@ -30,16 +31,20 @@ async function resolveS3ClientRegion(client: S3Client): Promise<string> {
   return typeof r === "function" ? await r() : r;
 }
 
-export async function listObjectsInBucket(
+export function listObjectsInBucket(
   client: S3Client,
   bucket: string,
   prefix?: string,
-): Promise<_Object[]> {
-  const res = await client.send(
-    new ListObjectsCommand({ Bucket: bucket, Prefix: prefix }),
+): AsyncGenerator<_Object> {
+  const paginator = paginateListObjectsV2(
+    { client },
+    {
+      Bucket: bucket,
+      Prefix: prefix,
+    },
   );
 
-  return res.Contents || [];
+  return Async.flatMap(paginator, (page) => page.Contents || []);
 }
 
 export async function getObject(
@@ -52,7 +57,17 @@ export async function getObject(
   );
 
   if (!res.Body) throw new Error("no body set!");
-  return res.Body.transformToString();
+
+  const data = await res.Body.transformToByteArray();
+
+  if (key.endsWith(".gz") || res.ContentEncoding?.includes("gzip")) {
+    Logger.debug(
+      `unzipping ${key} with ContentEncoding ${res.ContentEncoding}`,
+    );
+    return Buffer.from(gunzipSync(data)).toString("utf8");
+  }
+
+  return Buffer.from(data).toString("utf-8");
 }
 
 export async function deleteBucket(
@@ -155,35 +170,43 @@ export async function emptyBucket(
   options: Partial<Options> = {},
 ): Promise<boolean> {
   const region = await resolveS3ClientRegion(client);
-  while (true) {
-    try {
-      Logger.info(`Deleting bucket ${bucket}...`);
-      const objects = await listObjectsInBucket(client, bucket, undefined);
-      Logger.info(`Found ${objects.length} objects in bucket ${bucket}.`);
-      if (objects.length === 0) {
-        Logger.info(`Bucket ${bucket} is already empty.`);
-        return true;
-      }
+  try {
+    Logger.info(`Emptying bucket ${bucket}...`);
+
+    const objects = listObjectsInBucket(client, bucket, undefined);
+
+    let total = 0;
+
+    // DeleteObjects accepts at most 1000 keys per request, so drain the
+    // paginated generator in 1000-object batches.
+    for await (const batch of Async.batch(objects, 1000)) {
+      total += batch.length;
 
       await deleteObjects(
         client,
         bucket,
-        objects.map(({ Key }) => {
+        batch.map(({ Key }) => {
           if (!Key) throw new Error("Key is not defined");
           return { Key };
         }),
         options,
       );
-    } catch (e) {
-      const handled = await handleRedirect(
-        e,
-        (r) => emptyBucket(getS3Client(r), bucket, options),
-        region,
-      );
-      if (handled) return true;
-
-      throw new Error(`Error emptying ${bucket} bucket`, { cause: e });
     }
+
+    if (total === 0) {
+      Logger.info(`Bucket ${bucket} is already empty.`);
+    }
+
+    return true;
+  } catch (e) {
+    const handled = await handleRedirect(
+      e,
+      (r) => emptyBucket(getS3Client(r), bucket, options),
+      region,
+    );
+    if (handled) return true;
+
+    throw new Error(`Error emptying ${bucket} bucket`, { cause: e });
   }
 }
 
