@@ -1,35 +1,24 @@
-import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
+import { composeWithOptionQuery, WithOptionMethods } from "./query-builder";
 import { CommonOptions, prefixedTableName, SQL, sql } from "./util";
 
 type InsertOptions = CommonOptions;
 
-export interface InsertQuery<T> extends ComposedQuery<InsertQuery<T>, void> {}
+interface InsertQuery<T>
+  extends PromiseLike<void>,
+    WithOptionMethods<InsertOptions, InsertQuery<T>> {}
 
 export function insert<T>(
   client: SQL,
   table: string,
   items: Array<T>,
+  options: Partial<InsertOptions> = {},
 ): InsertQuery<T> {
-  return asQuery<InsertQuery<T>>(new InsertQueryImpl(client, table, items, {}));
-}
-
-class InsertQueryImpl<T> {
-  constructor(
-    private readonly client: SQL,
-    private readonly table: string,
-    private readonly items: Array<T>,
-    private readonly options: InsertOptions,
-  ) {
-    attachQuery(this, {
-      options,
-      recreate: (next) =>
-        asQuery<InsertQuery<T>>(
-          new InsertQueryImpl(this.client, this.table, this.items, next),
-        ),
-      execute: () =>
-        insertInternal(this.client, this.table, this.items, this.options),
-    });
-  }
+  return composeWithOptionQuery(
+    () => insertInternal(client, table, items, options),
+    ["tablePrefix", "wheres"],
+    options,
+    (next) => insert(client, table, items, next),
+  );
 }
 
 async function insertInternal<T>(
@@ -38,8 +27,7 @@ async function insertInternal<T>(
   items: Array<T>,
   options: InsertOptions,
 ): Promise<void> {
-  return await client`
+  await client`
 INSERT INTO ${sql(prefixedTableName(table, options))}
-${sql(items)}
-`;
+${sql(items)}`;
 }

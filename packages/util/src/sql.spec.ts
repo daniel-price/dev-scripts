@@ -4,7 +4,7 @@ import * as bunSql from "bun";
 import { describe, expect, it } from "bun:test";
 
 import { R, Sql } from "..";
-import { select, insert, withQueryLogging } from "./sql";
+import { insert, select, withQueryLogging } from "./sql";
 
 const { SQL } = bunSql;
 
@@ -304,7 +304,7 @@ describe("Sql", () => {
         },
       ],
     });
-    await Sql.deleteAll(client, tableName).where({
+    await Sql.deleteAll(client, tableName).withWheres({
       name: "danp-dentally.danp.sandbox.portal.dental",
     });
     expect(db.getStatements()).toEqual([
@@ -446,7 +446,7 @@ describe("Sql", () => {
     await insert(client, nullUpdateTableName, [
       { id: 3, name: "name_3", age: 30 },
       { id: 4, name: "name_4", age: 40 },
-    ]).tablePrefix("stage");
+    ]).withTablePrefix("stage");
     expect(db.getStatements()).toEqual([
       `INSERT INTO "stage_null_update_test_table" ("id", "name", "age") VALUES($1, $2, $3),($4, $5, $6)`,
       [3, "name_3", 30, 4, "name_4", 40],

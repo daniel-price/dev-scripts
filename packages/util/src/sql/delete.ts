@@ -1,5 +1,5 @@
 import * as Logger from "../logger";
-import { asQuery, attachQuery, ComposedQuery } from "./query-builder";
+import { composeWithOptionQuery, WithOptionMethods } from "./query-builder";
 import {
   CommonOptions,
   constructWhere,
@@ -10,39 +10,30 @@ import {
 
 type DeleteOptions = CommonOptions;
 
-export interface DeleteQuery extends ComposedQuery<DeleteQuery, void> {}
+interface DeleteQuery
+  extends PromiseLike<void>,
+    WithOptionMethods<DeleteOptions, DeleteQuery> {}
 
-export function deleteAll(client: SQL, table: string): DeleteQuery {
-  return asQuery<DeleteQuery>(new DeleteQueryImpl(client, table, {}));
-}
-
-class DeleteQueryImpl {
-  constructor(
-    private readonly client: SQL,
-    private readonly table: string,
-    private readonly options: DeleteOptions,
-  ) {
-    attachQuery(this, {
-      options,
-      recreate: (next) =>
-        asQuery<DeleteQuery>(
-          new DeleteQueryImpl(this.client, this.table, next),
-        ),
-      execute: () => deleteInternal(this.client, this.table, this.options),
-    });
-  }
-}
-
-export async function deleteInternal(
+export function deleteAll(
   client: SQL,
   table: string,
-  options: DeleteOptions = {},
+  options: Partial<DeleteOptions> = {},
+): DeleteQuery {
+  return composeWithOptionQuery(
+    () => deleteInternal(client, table, options),
+    ["tablePrefix", "wheres"],
+    options,
+    (next) => deleteAll(client, table, next),
+  );
+}
+
+async function deleteInternal(
+  client: SQL,
+  table: string,
+  options: DeleteOptions,
 ): Promise<void> {
-  const query = client`
+  const res = await client`
 DELETE FROM ${sql(prefixedTableName(table, options))}
-${constructWhere(options.wheres)}
-`;
-  const res = await query;
+${constructWhere(options.wheres)}`;
   Logger.info(`Deleted ${res.count} rows from ${table}`);
-  return res.count;
 }
