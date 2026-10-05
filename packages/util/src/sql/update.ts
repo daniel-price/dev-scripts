@@ -18,18 +18,29 @@ interface UpdateQuery
 //   return this.recreate({ ...this.options, tablePrefix: prefix });
 // }
 
-function tablePrefix<T>(options: T, prefix?: string): T {
-  //
+function tablePrefix<T>(
+  options: T,
+  prefix: string,
+): T & { tablePrefix: string } {
   return { ...options, tablePrefix: prefix };
 }
 
-function newComposeWithOptions(
+function newComposeWithOptions<
+  T,
+  U extends Record<
+    string,
+    <X extends Record<string, any>>(
+      options: X,
+      val: string,
+    ) => X & { [K in keyof X]: X[K] }
+  >,
+>(
   arg0: () => Promise<void>,
-  arg1: ((prefix?: string) => void)[],
+  args: U,
   options: Partial<CommonOptions>,
   arg3: (next: any) => UpdateQuery,
-) {
-  throw new Error("Function not implemented.");
+): T {
+  return;
 }
 
 export function update<T extends Record<string, unknown>>(
@@ -38,12 +49,14 @@ export function update<T extends Record<string, unknown>>(
   set: T,
   options: Partial<UpdateOptions> = {},
 ): UpdateQuery {
-  newComposeWithOptions(
-    () => updateInternal(client, table, set, options),
-    [tablePrefix],
-    options,
-    (next) => update(client, table, set, next),
-  );
+  if (1 === 1) {
+    return newComposeWithOptions(
+      () => updateInternal(client, table, set, options),
+      { tablePrefix },
+      options,
+      (next) => update(client, table, set, next),
+    );
+  }
 
   return composeWithOptionQuery(
     () => updateInternal(client, table, set, options),
