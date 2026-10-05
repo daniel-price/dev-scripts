@@ -45,3 +45,9 @@ export function pickKeys<T extends Record<string, unknown>, K extends keyof T>(
 export function assertNever(value: never): never {
   throw new Error(`Unexpected value: ${value}`);
 }
+
+export function toDecimalPlaces(decimal: number, decimalPlaces: number) {
+  const multiplier = Math.pow(10, decimalPlaces);
+  const roundedMultiplied = Math.round(decimal * multiplier);
+  return roundedMultiplied / multiplier;
+}

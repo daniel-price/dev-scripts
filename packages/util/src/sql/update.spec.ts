@@ -25,6 +25,7 @@ import {
   uniqueTableName,
 } from "./test-support/table-fixtures";
 import { update } from "./update";
+import { getCompletionsFromProject } from "./test-support/type-server";
 
 describe("Sql.update", () => {
   let env: PgTestEnvironment;
@@ -96,4 +97,21 @@ describe("Sql.update", () => {
 
     expectParamStatements(env.flushStatements(), [[longValue, 1]]);
   });
+});
+
+it("should autocomplete withWheres from real update()", () => {
+  const result = getCompletionsFromProject(
+    "packages/util/src/sql",
+    `
+import { update } from "./update";
+
+declare const client: Parameters<typeof update>[0];
+
+await update(client, "people", { name: "x" }).|
+`,
+  );
+
+  expect(result?.entries.map((e) => e.name)).toEqual(
+    expect.arrayContaining(["withWheres", "withTablePrefix"]),
+  );
 });
