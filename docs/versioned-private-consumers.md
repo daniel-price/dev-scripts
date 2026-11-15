@@ -1,7 +1,7 @@
 # Versioned dependencies with optional local links
 
-This public repository contains only the reusable `@dev/util`, `@dev/aws`, and
-`@dev/scripts` packages. Store any private consumers in a **separate repository**
+This public repository contains only the reusable `@daniel-price/util`, `@daniel-price/aws`, and
+`@daniel-price/scripts` packages. Store any private consumers in a **separate repository**
 with its own workspace and lockfile. Dependencies point **from private to public**,
 never the other way around.
 
@@ -17,7 +17,7 @@ Install and test the public checkout:
 pnpm install --frozen-lockfile
 pnpm test
 pnpm check-types
-pnpm --filter @dev/util pack --dry-run
+pnpm --filter @daniel-price/util pack --dry-run
 ```
 
 Before publishing any package:
@@ -29,9 +29,25 @@ Before publishing any package:
    Rename package scopes and imports first if you do not control `@dev`.
 3. Update package versions and dependency ranges together, and regenerate
    the public lockfile with pnpm 10.
-4. Publish packages in dependency order (util, aws, scripts), using an
-   authenticated account and explicit `--access public` if using npm.
-   For example, `pnpm --filter @dev/util publish --access public`.
+4. Publish packages in dependency order (util, aws, scripts) using a
+   GitHub personal access token (classic) with `write:packages` permission.
+   For example, `pnpm --filter @daniel-price/util publish --no-git-checks`
+   after performing the release review and version commit. Do **not** put the
+   token in Git. Package visibility is administered in GitHub's package settings.
+   Consider publishing as private until source auditing is complete.
+
+GitHub Packages requires authentication for **installing public as well as
+private packages**. Give consumers a classic PAT with `read:packages` and
+configure it in their user-level `~/.npmrc` or CI secrets, never in Git:
+
+```ini
+@daniel-price:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Alternatively, configure the auth token in `~/.npmrc` directly and keep
+only the scope registry line in the repository. Private CI needs access to
+this GitHub package owner and a securely injected token.
 
 The current packages expose TypeScript files directly via `module: "index.ts"`.
 Published packages therefore target **Bun/TypeScript-aware consumers**, not
@@ -74,8 +90,8 @@ not `link:` paths:
   "name": "@example/private-util",
   "private": true,
   "dependencies": {
-    "@dev/util": "0.0.1",
-    "@dev/aws": "0.0.1"
+    "@daniel-price/util": "0.0.1",
+    "@daniel-price/aws": "0.0.1"
   }
 }
 ```
@@ -92,7 +108,7 @@ With both repositories checked out, run in the private repository:
 pnpm install --no-lockfile
 ```
 
-pnpm links matching `@dev/*` workspace packages from the sibling checkout.
+pnpm links matching `@daniel-price/*` workspace packages from the sibling checkout.
 Changes to their TypeScript source are picked up by Bun immediately; there
 is no publish/reinstall step for ordinary source edits.
 
@@ -104,7 +120,7 @@ a change is important.
 ### Registry mode (CI and other users)
 
 **Generate and commit the private repository's lockfile in an environment
-without the sibling public checkout**, so all versioned `@dev/*` dependencies
+without the sibling public checkout**, so all versioned `@daniel-price/*` dependencies
 resolve from the configured registry. Keep that lockfile under private Git.
 
 Then, in CI or another checkout without the public repository:
@@ -114,8 +130,9 @@ pnpm install --frozen-lockfile
 ```
 
 No local source tree is needed. CI installs the published versions and fails
-if the lockfile is out of sync. Make sure the registry and credentials, if
-required, are configured by your private CI environment—not committed here.
+if the lockfile is out of sync. GitHub Packages authentication is required even for public packages:
+configure the registry and a `read:packages` token using private CI secrets.
+Never commit credentials.
 
 ### Switching back and forth
 
