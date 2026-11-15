@@ -1,6 +1,6 @@
 import { ContainerDefinition, Task } from "@aws-sdk/client-ecs";
-import { ECS } from "@dev/aws";
-import { Execute, Json, Logger, Prompt, R, Util } from "@dev/util";
+import { ECS } from "@daniel-price/aws";
+import { Execute, Json, Logger, Prompt, R, Util } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 

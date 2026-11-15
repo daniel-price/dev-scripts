@@ -1,4 +1,4 @@
-import { Logger, Prompt } from "@dev/util";
+import { Logger, Prompt } from "@daniel-price/util";
 import fs from "fs";
 import mri from "mri";
 

@@ -2,7 +2,7 @@ import {
   CloudFormationClient,
   StackStatus,
 } from "@aws-sdk/client-cloudformation";
-import { ChangeItems, Logger, Util } from "@dev/util";
+import { ChangeItems, Logger, Util } from "@daniel-price/util";
 
 import { isSdkError } from "../../helpers/error";
 import {

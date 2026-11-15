@@ -61,8 +61,10 @@ describe("Sql.select", () => {
       id: 1,
     });
 
-    expect(result).toEqual({
-      affectedRows: null,
+    // Bun versions can report either null or zero for SELECT's affectedRows.
+    const { affectedRows, ...remaining } = result;
+    expect([null, 0]).toContain(affectedRows);
+    expect(remaining).toEqual({
       count: 1,
       lastInsertRowid: null,
       records: [{ age: 10, id: 1, name: "name_1" }],

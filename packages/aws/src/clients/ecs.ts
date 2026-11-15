@@ -15,7 +15,7 @@ import {
   Task,
   TaskDefinition,
 } from "@aws-sdk/client-ecs";
-import { ArrayUtil, Logger, Util } from "@dev/util";
+import { ArrayUtil, Logger, Util } from "@daniel-price/util";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 

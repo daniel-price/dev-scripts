@@ -1,4 +1,4 @@
-import { Json, Logger, R, Util } from "@dev/util";
+import { Json, Logger, R, Util } from "@daniel-price/util";
 import prettier from "prettier";
 
 import { clipboard } from "./args";

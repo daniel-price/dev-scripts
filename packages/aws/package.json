@@ -1,5 +1,5 @@
 {
-  "name": "@dev/aws",
+  "name": "@daniel-price/aws",
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
@@ -19,10 +19,22 @@
     "@aws-sdk/client-ssm": "^3.946.0",
     "@aws-sdk/client-sts": "^3.946.0",
     "@aws-sdk/util-dynamodb": "^3.946.0",
-    "@dev/util": "0.0.1",
+    "@daniel-price/util": "workspace:*",
     "log-update": "6.0.0"
   },
   "devDependencies": {
     "@types/bun": "1.0.5"
+  },
+  "files": [
+    "index.ts",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel-price/dev-scripts.git",
+    "directory": "packages/aws"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

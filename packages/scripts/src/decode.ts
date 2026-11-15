@@ -1,4 +1,4 @@
-import { Clipboard, Logger, R } from "@dev/util";
+import { Clipboard, Logger, R } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 

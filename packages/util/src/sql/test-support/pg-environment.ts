@@ -56,15 +56,27 @@ export async function createPgTestEnvironment(): Promise<PgTestEnvironment> {
       return captured;
     },
     close: async (): Promise<void> => {
-      // Best-effort teardown. Bun's SQL client can hang on `end()` when
-      // the peer socket is closing, so we swallow errors and rely on a
-      // short timeout to guarantee forward progress.
-      await Promise.race([
-        client.end({ timeout: 1 }).catch(() => {}),
-        new Promise((resolve) => setTimeout(resolve, 100)),
-      ]);
-      await socket.stop().catch(() => {});
-      await db.close().catch(() => {});
+      // Socket shutdown may wait indefinitely for a pending Bun SQL connection
+      // on some platforms. Bound every best-effort cleanup stage so test hooks
+      // cannot hang, while still attempting to release all resources.
+      const settle = async (promise: Promise<unknown>): Promise<void> => {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            promise.then(() => {}, () => {}),
+            new Promise<void>((resolve) => {
+              timer = setTimeout(resolve, 250);
+            }),
+          ]);
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      };
+
+      await settle(client.end({ timeout: 1 }));
+      await settle(socket.stop());
+      await settle(db.close());
+
     },
   };
 }

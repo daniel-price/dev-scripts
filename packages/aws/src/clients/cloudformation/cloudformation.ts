@@ -11,9 +11,9 @@ import {
   ListStacksCommand,
   StackStatus,
 } from "@aws-sdk/client-cloudformation";
-import { Enum, Logger } from "@dev/util";
-import { ensureFieldsSet } from "@dev/util/src/types";
-import { isNonNil } from "@dev/util/src/util";
+import { Enum, Logger } from "@daniel-price/util";
+import { ensureFieldsSet } from "@daniel-price/util/src/types";
+import { isNonNil } from "@daniel-price/util/src/util";
 
 import { yieldAll } from "../../helpers/aws";
 import { regionalAwsClient } from "../../helpers/regionalAwsClient";

@@ -90,7 +90,7 @@ describe("Sql.update", () => {
   });
 
   it("binds long strings without truncation or escaping", async () => {
-    const longValue = "danp-dentally.danp.sandbox.portal.dental";
+    const longValue = "test-long-value.example.invalid";
 
     await update(env.client, table, { name: longValue }).withWheres({ id: 1 });
 

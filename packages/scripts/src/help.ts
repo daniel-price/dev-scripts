@@ -1,4 +1,4 @@
-import { R } from "@dev/util";
+import { R } from "@daniel-price/util";
 
 import { ArgSchema, isClipboardDefault } from "./args";
 

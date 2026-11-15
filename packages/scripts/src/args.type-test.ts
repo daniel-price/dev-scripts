@@ -1,4 +1,4 @@
-import { R } from "@dev/util";
+import { R } from "@daniel-price/util";
 
 import { type ArgField, clipboard } from "./args";
 import { defineScript } from "./script";
