@@ -28,9 +28,9 @@ pnpm check-types
 
 | Package | Purpose |
 | --- | --- |
-| `@dev/util` | Shared utilities |
-| `@dev/aws` | AWS helpers (depends on `@dev/util`) |
-| `@dev/scripts` | General-purpose scripts (depends on `@dev/util` and `@dev/aws`) |
+| `@daniel-price/util` | Shared utilities |
+| `@daniel-price/aws` | AWS helpers (depends on `@daniel-price/util`) |
+| `@daniel-price/scripts` | General-purpose scripts (depends on `@daniel-price/util` and `@daniel-price/aws`) |
 
 Internal dependencies use `workspace:*`. Locally, pnpm links package source
 directories. When packages are packed or published, pnpm converts these
@@ -45,5 +45,6 @@ for a complete example of a private repository using local symlinks during
 development and published versioned packages in CI.
 
 > Publishing is not automatic. The current packages expose TypeScript for Bun
-> consumers; before publishing, audit their contents and verify that you control
-> the `@dev` scope in the chosen registry.
+> consumers; before publishing, audit their contents and use the GitHub Packages
+> registry under your GitHub account. Installing published packages requires
+> GitHub Packages authentication even when packages are public.
