@@ -1,11 +1,11 @@
 {
-  "name": "@dev/scripts",
+  "name": "@daniel-price/scripts",
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
     "@aws-sdk/client-ecs": "^3.946.0",
-    "@dev/aws": "workspace:*",
-    "@dev/util": "workspace:*",
+    "@daniel-price/aws": "workspace:*",
+    "@daniel-price/util": "workspace:*",
     "envalid": "8.0.0",
     "mri": "1.2.0",
     "prettier": "3.0.3"
@@ -16,5 +16,13 @@
   "files": [
     "index.ts",
     "src"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel-price/dev-scripts.git",
+    "directory": "packages/scripts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
