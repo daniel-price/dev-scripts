@@ -1,4 +1,4 @@
-import { Logger, R, Sql } from "@dev/util";
+import { Logger, R, Sql } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 import { getSqlClient } from "./util/getSqlClient";
