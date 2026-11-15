@@ -1,6 +1,6 @@
 import { CodePipeline, PipelineSummary } from "@aws-sdk/client-codepipeline";
-import { Logger } from "@dev/util";
-import { changeItems } from "@dev/util/src/change-items";
+import { Logger } from "@daniel-price/util";
+import { changeItems } from "@daniel-price/util/src/change-items";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
