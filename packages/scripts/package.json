@@ -4,13 +4,17 @@
   "module": "index.ts",
   "dependencies": {
     "@aws-sdk/client-ecs": "^3.946.0",
-    "@dev/aws": "0.0.1",
-    "@dev/util": "0.0.1",
+    "@dev/aws": "workspace:*",
+    "@dev/util": "workspace:*",
     "envalid": "8.0.0",
     "mri": "1.2.0",
     "prettier": "3.0.3"
   },
   "dev-dependencies": {
     "@types/bun": "1.0.5"
-  }
+  },
+  "files": [
+    "index.ts",
+    "src"
+  ]
 }
