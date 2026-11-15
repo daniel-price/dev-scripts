@@ -8,7 +8,7 @@ import {
   ResourceRecordSet,
   Route53Client,
 } from "@aws-sdk/client-route-53";
-import { Logger } from "@dev/util";
+import { Logger } from "@daniel-price/util";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 
