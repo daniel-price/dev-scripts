@@ -1,5 +1,5 @@
 {
-  "name": "@dev/util",
+  "name": "@daniel-price/util",
   "version": "0.0.1",
   "module": "index.ts",
   "dependencies": {
@@ -20,5 +20,13 @@
   "files": [
     "index.ts",
     "src"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel-price/dev-scripts.git",
+    "directory": "packages/util"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
