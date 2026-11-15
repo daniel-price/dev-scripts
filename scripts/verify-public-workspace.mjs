@@ -16,7 +16,7 @@ const importerSection = file("pnpm-lock.yaml").split("\nimporters:\n")[1]?.split
 if (!importerSection) throw new Error("Could not find lockfile importers");
 
 const importers = new Set(
-  [...importerSection.matchAll(/^  ([^:\n]+):\s*$/gm)].map((match) => match[1]),
+  [...importerSection.matchAll(/^  (\S[^:\n]*):[ \t]*$/gm)].map((match) => match[1]),
 );
 const expectedImporters = new Set([".", ...declared]);
 
