@@ -24,9 +24,9 @@ Before publishing any package:
 
 1. Audit its source and the pack preview for internal data, credentials and
    files that shouldn't leave your machine.
-2. Confirm you have publishing rights to the **`@dev`** scope in the target
-   package registry. The GitHub repository's ownership does not imply this.
-   Rename package scopes and imports first if you do not control `@dev`.
+2. Packages use the **`@daniel-price`** namespace on GitHub Packages,
+   associated with the personal GitHub account that owns this repository.
+   This does not claim an npmjs.org namespace.
 3. Update package versions and dependency ranges together, and regenerate
    the public lockfile with pnpm 10.
 4. Publish packages in dependency order (util, aws, scripts) using a
