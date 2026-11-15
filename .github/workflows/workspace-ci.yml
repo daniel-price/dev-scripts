@@ -39,6 +39,6 @@ jobs:
 
       - name: Inspect package contents without publishing
         run: |
-          pnpm --filter @dev/util pack --dry-run
-          pnpm --filter @dev/aws pack --dry-run
-          pnpm --filter @dev/scripts pack --dry-run
+          pnpm --filter @daniel-price/util pack --dry-run
+          pnpm --filter @daniel-price/aws pack --dry-run
+          pnpm --filter @daniel-price/scripts pack --dry-run
