@@ -10,8 +10,8 @@ import {
   UpdateFunctionCodeCommand,
   UpdateFunctionCodeCommandOutput,
 } from "@aws-sdk/client-lambda";
-import { Json } from "@dev/util";
-import { confirmChangeItems } from "@dev/util/src/change-items";
+import { Json } from "@daniel-price/util";
+import { confirmChangeItems } from "@daniel-price/util/src/change-items";
 import fs from "fs";
 
 import { yieldAll } from "../helpers/aws";
