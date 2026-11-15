@@ -1,5 +1,5 @@
-import { ParameterStore } from "@dev/aws";
-import { Logger, R } from "@dev/util";
+import { ParameterStore } from "@daniel-price/aws";
+import { Logger, R } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 
