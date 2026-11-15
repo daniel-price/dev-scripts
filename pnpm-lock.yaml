@@ -98,7 +98,7 @@ importers:
       "@aws-sdk/util-dynamodb":
         specifier: ^3.946.0
         version: 3.996.6(@aws-sdk/client-dynamodb@3.1086.0)
-      "@dev/util":
+      "@daniel-price/util":
         specifier: workspace:*
         version: link:../util
       log-update:
@@ -114,10 +114,10 @@ importers:
       "@aws-sdk/client-ecs":
         specifier: ^3.946.0
         version: 3.1086.0
-      "@dev/aws":
+      "@daniel-price/aws":
         specifier: workspace:*
         version: link:../aws
-      "@dev/util":
+      "@daniel-price/util":
         specifier: workspace:*
         version: link:../util
       envalid:
