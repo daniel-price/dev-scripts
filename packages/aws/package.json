@@ -19,10 +19,14 @@
     "@aws-sdk/client-ssm": "^3.946.0",
     "@aws-sdk/client-sts": "^3.946.0",
     "@aws-sdk/util-dynamodb": "^3.946.0",
-    "@dev/util": "0.0.1",
+    "@dev/util": "workspace:*",
     "log-update": "6.0.0"
   },
   "devDependencies": {
     "@types/bun": "1.0.5"
-  }
+  },
+  "files": [
+    "index.ts",
+    "src"
+  ]
 }
