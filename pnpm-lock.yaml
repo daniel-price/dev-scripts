@@ -99,45 +99,11 @@ importers:
         specifier: ^3.946.0
         version: 3.996.6(@aws-sdk/client-dynamodb@3.1086.0)
       "@dev/util":
-        specifier: 0.0.1
+        specifier: workspace:*
         version: link:../util
       log-update:
         specifier: 6.0.0
         version: 6.0.0
-    devDependencies:
-      "@types/bun":
-        specifier: 1.0.5
-        version: 1.0.5
-
-  packages/dentally-scripts:
-    dependencies:
-      "@dev/aws":
-        specifier: 0.0.1
-        version: link:../aws
-      "@dev/dentally-util":
-        specifier: 0.0.1
-        version: link:../dentally-util
-      "@dev/scripts":
-        specifier: 0.0.1
-        version: link:../scripts
-      "@dev/util":
-        specifier: 0.0.1
-        version: link:../util
-      envalid:
-        specifier: 8.0.0
-        version: 8.0.0
-      mri:
-        specifier: 1.2.0
-        version: 1.2.0
-
-  packages/dentally-util:
-    dependencies:
-      "@dev/aws":
-        specifier: 0.0.1
-        version: link:../aws
-      "@dev/util":
-        specifier: 0.0.1
-        version: link:../util
     devDependencies:
       "@types/bun":
         specifier: 1.0.5
@@ -149,10 +115,10 @@ importers:
         specifier: ^3.946.0
         version: 3.1086.0
       "@dev/aws":
-        specifier: 0.0.1
+        specifier: workspace:*
         version: link:../aws
       "@dev/util":
-        specifier: 0.0.1
+        specifier: workspace:*
         version: link:../util
       envalid:
         specifier: 8.0.0
