@@ -1,4 +1,4 @@
-import { Logger, retry } from "@dev/util";
+import { Logger, retry } from "@daniel-price/util";
 
 /**
  * Logs each command and adds retry logic to AWS SDK clients.
