@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 
 const root = new URL("../", import.meta.url);
 const file = (path) => readFileSync(new URL(path, root), "utf8");
