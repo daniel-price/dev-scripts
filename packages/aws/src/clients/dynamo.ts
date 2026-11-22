@@ -19,8 +19,8 @@ import {
   UpdateItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Async, Logger, Paginate, R, SourceValidationError } from "@dev/util";
-import { confirmChangeItems } from "@dev/util/src/change-items";
+import { Async, Logger, Paginate, R, SourceValidationError } from "@daniel-price/util";
+import { confirmChangeItems } from "@daniel-price/util/src/change-items";
 
 import { yieldAll } from "../helpers/aws";
 import { isDynamoValidationException } from "../helpers/error";

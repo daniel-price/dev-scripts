@@ -9,8 +9,8 @@ import {
   paginateListObjectsV2,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { Async, ChangeItems, Logger, Util } from "@dev/util";
-import { changeItems } from "@dev/util/src/change-items";
+import { Async, ChangeItems, Logger, Util } from "@daniel-price/util";
+import { changeItems } from "@daniel-price/util/src/change-items";
 import { gunzipSync } from "bun";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";

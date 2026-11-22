@@ -1,4 +1,4 @@
-import { R } from "@dev/util";
+import { R } from "@daniel-price/util";
 import { describe, expect, it } from "bun:test";
 
 import { clipboard } from "./args";

@@ -1,5 +1,5 @@
-import { DynamoDB } from "@dev/aws";
-import { Async, Logger, R, Util } from "@dev/util";
+import { DynamoDB } from "@daniel-price/aws";
+import { Async, Logger, R, Util } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 

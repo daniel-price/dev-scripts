@@ -6,8 +6,8 @@ import {
   PutParameterCommand,
   SSM,
 } from "@aws-sdk/client-ssm";
-import { Json, Logger, R } from "@dev/util";
-import { isNonNil } from "@dev/util/src/util";
+import { Json, Logger, R } from "@daniel-price/util";
+import { isNonNil } from "@daniel-price/util/src/util";
 
 import { yieldAll } from "../helpers/aws";
 import { regionalAwsClient } from "../helpers/regionalAwsClient";

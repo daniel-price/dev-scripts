@@ -1,4 +1,4 @@
-import { Logger } from "@dev/util";
+import { Logger } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 

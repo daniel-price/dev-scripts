@@ -1,5 +1,5 @@
-import { S3 } from "@dev/aws";
-import { Logger, R } from "@dev/util";
+import { S3 } from "@daniel-price/aws";
+import { Logger, R } from "@daniel-price/util";
 
 import { defineScript } from "./script";
 

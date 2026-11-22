@@ -2,7 +2,7 @@ import {
   GetSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
-import { Json, R } from "@dev/util";
+import { Json, R } from "@daniel-price/util";
 
 import { regionalAwsClient } from "../helpers/regionalAwsClient";
 

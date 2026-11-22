@@ -1,21 +1,26 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "bun:test";
 import fs from "fs";
+import os from "os";
+import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 import * as FileUtil from "./file";
 import * as R from "./runtypes";
 
 describe("File", () => {
-  const directory: string = `${FileUtil.E_DIRECTORIES.DEV_SCRIPTS}test/`;
+  const directory = `${fs.mkdtempSync(path.join(os.tmpdir(), "dev-scripts-tests-"))}${path.sep}`;
   let fileName: string;
   beforeEach(() => {
     fileName = `${uuidv4()}.test`;
   });
 
   afterEach(() => {
-    const filePath = `${directory ? directory : ""}${fileName}`;
-    fs.rmSync(filePath);
+    fs.rmSync(`${directory}${fileName}`, { force: true });
   });
+  afterAll(() => {
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
   describe("should write and read the same content when it", () => {
     it("is json", () => {
       const set1 = new Set<number>();

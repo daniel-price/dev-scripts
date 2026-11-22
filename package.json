@@ -1,11 +1,9 @@
 {
   "name": "dev-scripts",
-  "private": "true",
+  "private": true,
   "workspaces": [
     "packages/util",
     "packages/aws",
-    "packages/dentally-util",
-    "packages/dentally-scripts",
     "packages/scripts"
   ],
   "scripts": {

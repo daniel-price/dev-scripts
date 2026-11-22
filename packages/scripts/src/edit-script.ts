@@ -1,5 +1,5 @@
-import { Execute, FileUtil, Logger, R } from "@dev/util";
-import { E_DIRECTORIES } from "@dev/util/src/file";
+import { Execute, FileUtil, Logger, R } from "@daniel-price/util";
+import { E_DIRECTORIES } from "@daniel-price/util/src/file";
 
 import { defineScript } from "./script";
 
@@ -24,7 +24,7 @@ export default defineScript({
     if (shouldCreate) {
       const fileContents = `import { defineScript } from "./script";
 
-import { Logger, R } from "@dev/util";
+import { Logger, R } from "@daniel-price/util";
 
 export default defineScript({
   args: {

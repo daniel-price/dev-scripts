@@ -1,5 +1,5 @@
-import { Clipboard, Prompt, R } from "@dev/util";
-import { HasDefault } from "@dev/util/src/types";
+import { Clipboard, Prompt, R } from "@daniel-price/util";
+import { HasDefault } from "@daniel-price/util/src/types";
 
 export type ArgRuntype = Parameters<typeof R.Object>[0][string];
 

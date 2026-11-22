@@ -1,4 +1,4 @@
-import { Lambda } from "@dev/aws";
+import { Lambda } from "@daniel-price/aws";
 import {
   Execute,
   FileUtil,
@@ -8,7 +8,7 @@ import {
   Prompt,
   R,
   SqlLite,
-} from "@dev/util";
+} from "@daniel-price/util";
 
 import { str } from "./env";
 import { defineScript } from "./script";
