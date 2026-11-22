@@ -4,12 +4,17 @@ Reusable Bun/TypeScript utilities and scripts.
 
 ## Getting started
 
-Install dependencies with **pnpm 10** (the committed `pnpm-lock.yaml` is
-the source of truth):
+Install the pinned Node.js, pnpm and Bun toolchain with [mise](https://mise.jdx.dev/),
+then install dependencies from the committed `pnpm-lock.yaml`:
 
 ```sh
+mise install
 pnpm install --frozen-lockfile
 ```
+
+The versions in `mise.toml` are used locally and in CI. With mise shell
+activation enabled, `pnpm` and `bun` automatically use those versions;
+otherwise run commands through `mise exec -- <command>`.
 
 Run the general scripts:
 
